@@ -23,4 +23,8 @@
 hs_err_pid*
 replay_pid*
 
+<<<<<<< HEAD
+=======
+#node_modules folder
+>>>>>>> b3c71237ee867ffab0a2485837c8c457d17befc8
 node_modules/

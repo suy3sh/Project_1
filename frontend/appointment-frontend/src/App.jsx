@@ -1,14 +1,9 @@
-import './App.css'
-import { Home } from './pages'
+import GuestHome from "./pages/public/GuestHome";
+
+
 
 function App() {
-
-  return (
-    <>
-      <h1>This is the app</h1>
-      <Home/>
-    </>
-  )
+  return <GuestHome />;
 }
 
-export default App
+export default App;

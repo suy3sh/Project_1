@@ -1,0 +1,5 @@
+com\revature\smartAppointment\Project1Application.class
+com\revature\smartAppointment\Repository\UserRepository.class
+com\revature\smartAppointment\Controller\UserController.class
+com\revature\smartAppointment\Service\UserService.class
+com\revature\smartAppointment\Model\User.class
