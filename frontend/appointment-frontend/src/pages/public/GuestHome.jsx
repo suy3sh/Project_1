@@ -1,48 +1,68 @@
-import { FaHospital } from "react-icons/fa6";
-
+import { useState } from "react";
+import { FaHospital, FaUserDoctor } from "react-icons/fa6";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 function GuestHome() {
+  const [selectedDate, setSelectedDate] = useState(null);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
-      <nav className="bg-white shadow-md fixed w-full z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <FaHospital className="text-blue-600 text-3xl" />
-            <h1 className="text-xl font-bold">
-              Smart Appointment System
-            </h1>
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
+
+      {/* NAVBAR */}
+      <nav className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-white">
+          
+          <div className="flex items-center gap-3 text-2xl font-bold">
+            <FaHospital />
+            Smart Appointment System
           </div>
-          <div className="flex gap-4">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded">
-              Login
-            </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded">
-              Doctors
-            </button>
+
+          <div className="flex gap-6">
+            <button className="hover:underline">Home</button>
+            <button className="hover:underline">About</button>
+            <button className="hover:underline">Contact</button>
           </div>
+
         </div>
       </nav>
 
-      {/* Welcome Section */}
-      <section className="pt-24 text-center px-4">
-        <h2 className="text-4xl font-bold mb-4">
-          Welcome to Smart Appointment System
-        </h2>
-        <p className="text-gray-600 mb-10">
-          View doctor availability and book appointments easily.
+      {/* HERO SECTION */}
+      <section className="flex flex-col items-center text-center px-6 py-24">
+        <h1 className="text-5xl font-extrabold text-gray-800 mb-6">
+          Welcome to Your Health Journey
+        </h1>
+
+        <p className="text-xl text-gray-600 max-w-2xl mb-10">
+          Book your appointment with ease and connect with the best healthcare professionals
         </p>
 
-        {/* Calendar */}
-        <div className="bg-white inline-block p-6 rounded shadow">
-          <h3 className="text-xl font-semibold mb-4">
-            Doctor Availability
-          </h3>
-          <Calendar />
+        <div className="flex gap-6">
+          <button className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition">
+            Sign Up
+          </button>
+
+          <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition">
+            Find Doctors
+          </button>
         </div>
       </section>
+
+      {/* CALENDAR SECTION */}
+      <section className="flex justify-center pb-20">
+        <div className="bg-white p-8 rounded-2xl shadow-xl">
+          <h2 className="text-2xl font-bold text-center mb-4">
+            Doctor Availability
+          </h2>
+
+          <Calendar
+            onChange={setSelectedDate}
+            value={selectedDate}
+            className="rounded-lg"
+          />
+        </div>
+      </section>
+
     </div>
   );
 }
