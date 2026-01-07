@@ -6,7 +6,7 @@ import {
   BookAppointment,
   PatientProfile,
 } from "./pages/index";
-import Login from "./pages/public/Login"; // 👈 ADD THIS
+import Login from "./pages/public/Login"; // 
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<GuestHome />} />
-        <Route path="/login" element={<Login />} /> {/* 👈 ADD THIS */}
+        <Route path="/login" element={<Login />} /> 
         <Route path="/doctors" element={<DoctorsBrowse />} />
         <Route path="/book_appt" element={<BookAppointment />} />
         <Route path="/profile" element={<PatientProfile />} />
