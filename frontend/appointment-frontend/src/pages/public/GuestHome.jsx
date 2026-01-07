@@ -22,7 +22,7 @@ function GuestHome() {
 
         <div className="flex gap-6">
           <button className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition">
-            Login/Sign Up
+            Log In
           </button>
 
           <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition">
