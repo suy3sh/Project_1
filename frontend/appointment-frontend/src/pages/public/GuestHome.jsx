@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-
+import { useNavigate } from "react-router-dom"; 
 
 function GuestHome() {
   const [selectedDate, setSelectedDate] = useState(null);
-
+const navigate = useNavigate(); 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       
@@ -21,7 +21,8 @@ function GuestHome() {
         </p>
 
         <div className="flex gap-6">
-          <button className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition">
+          <button onClick={() => navigate("/login")}
+           className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition">
             Log In
           </button>
 
