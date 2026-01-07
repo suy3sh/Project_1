@@ -1,9 +1,23 @@
-import GuestHome from "./pages/public/GuestHome";
+import Navbar from "./components/Navbar";
+import { Route, Routes } from 'react-router-dom'
+import { DoctorsBrowse, GuestHome, BookAppointment, PatientProfile } from "./pages/index"
 
 
 
 function App() {
-  return <GuestHome />;
+  return (
+    <>
+      <Navbar/>
+      <Routes>
+        <Route path="/" element={<GuestHome />} />
+        <Route path="/doctors" element={<DoctorsBrowse />} />
+        <Route path="/book_appt" element={<BookAppointment/>} />
+        <Route path="profile" element={<PatientProfile/>}></Route>
+        <Route path="*" element={<div className="p-6">404 - Page not found</div>} />
+      </Routes>
+    </>
+    
+  )
 }
 
 export default App;

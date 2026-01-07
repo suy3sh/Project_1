@@ -1,23 +1,24 @@
+
+import { FaHospital } from "react-icons/fa6";
+import { Link } from "react-router-dom";
+
 function Navbar() {
     return (
-        <nav>
-            {/* Logo + Name of Application */}
-            {/* Goes to Home.jsx */}
-            <div>
-                Smart Appointment & Care
-            </div>
+        <nav className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-white">
+                
+                <Link className="nav_link" to="/">
+                    <div className="flex items-center gap-3 text-2xl font-bold">
+                        <FaHospital />
+                        Smart Appointment System
+                    </div>
+                </Link>
 
-            {/* Links */}
-            <div>
-                <div>Doctors</div> {/*goes to DoctorsBrowse.jsx*/}
-
-                {/* if guest, goes to Login.jsx */}
-                {/* if logged in, goes to BookAppointment.jsx*/}
-                <div>Book an Appointment</div> 
-
-                {/* if guest, goes to Login.jsx */}
-                {/* if logged in, goes to PatientProfile.jsx*/}
-                <div>Profile</div> 
+                <div className="flex gap-6">
+                    <Link className="nav-link" to="/doctors"><button className="hover:underline">Doctors</button></Link>
+                    <Link className="nav-link" to="/book_appt"><button className="hover:underline">Book an Appointment</button></Link>
+                    <Link className="nav-link" to="/profile"><button className="hover:underline">Profile</button></Link>
+                </div>
             </div>
         </nav>
     )

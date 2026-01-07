@@ -1,0 +1,45 @@
+Setting up Frontend Project
+---------------------------
+
+npm create vite@latest
+
+Project Name: appointment-frontend
+
+Framework: React
+
+Variant: JavaScript
+
+npm install
+
+Node.js Version 20.19
+
+
+Frontend File Structure Draft
+-----------------------------
+
+pages/                # route-level components
+    public/
+      Home.jsx
+      home/
+        guestHome.jsx
+        patientHome.jsx
+      Login.jsx
+      Register.jsx
+      DoctorsBrowse.jsx
+    patient/
+      BookAppointment.jsx
+      PatientAppointments.jsx
+      PatientProfile.jsx
+    doctor/
+      DoctorDashboard.jsx
+      DoctorAppointments.jsx
+      AppointmentDetails.jsx
+      DoctorProfile.jsx
+    admin/
+      AdminDashboard.jsx
+      TimeSlotManager.jsx
+      AdminProfile.jsx
+    super/
+      SuperDashboard.jsx
+      ManageAccounts.jsx
+
