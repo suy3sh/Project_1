@@ -11,6 +11,7 @@ import {
   DoctorsBrowse,
   GuestHome,
   BookAppointment,
+  Register,
 } from "./pages/index";
 import Login from "./pages/public/Login";
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/doctors" element={<DoctorsBrowse />} />
         <Route path="/book_appt" element={<BookAppointment />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Patient routes */}
         <Route path="/patient/home" element={<PatientHome />} />
