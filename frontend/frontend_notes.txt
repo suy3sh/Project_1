@@ -43,3 +43,20 @@ pages/                # route-level components
       SuperDashboard.jsx
       ManageAccounts.jsx
 
+
+4 Seperate Nav
+Guest
+-----
+Doctors  Login
+
+Patient
+-------
+Doctors   BookAppointment   Profile
+
+Doctor
+------
+Today'sAppointments    Calendar      
+
+Admin
+-----
+Schedules   StaffList

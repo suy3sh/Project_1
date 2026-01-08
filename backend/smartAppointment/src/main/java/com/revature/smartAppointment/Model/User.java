@@ -4,17 +4,24 @@ import lombok.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private int userId;
+    @Column(name = "email")
     private String email;
+    @Column(name = "password")
     private String password;
-    private String first_name;
-    private String last_name;
-    private int privilege_id;
+    @Column(name = "first_name")
+    private String firstName;
+    @Column(name = "last_name")
+    private String lastName;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "privilege_id")
+    private Privilege privilege;
 }
