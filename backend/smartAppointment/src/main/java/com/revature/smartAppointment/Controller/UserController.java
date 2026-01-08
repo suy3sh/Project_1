@@ -20,7 +20,17 @@ public class UserController {
 
     @RequestMapping("/user/{user_id}")
     public @ResponseBody ResponseEntity<User> getUser(@PathVariable int user_id) {
-        Optional<User> optionalUser = Optional.of(userService.getUserById(user_id));
+        Optional<User> optionalUser = userService.findById(user_id);
+        if (optionalUser.isPresent()) {
+            return ResponseEntity.status(200).body(optionalUser.get());
+        }
+        return ResponseEntity.status(400).build();
+
+    }
+
+    @RequestMapping("/register/{email}")
+    public @ResponseBody ResponseEntity<User> getUser(@PathVariable String email) {
+        Optional<User> optionalUser = userService.findUserByEmail(email);
         if (optionalUser.isPresent()) {
             return ResponseEntity.status(200).body(optionalUser.get());
         }
