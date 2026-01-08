@@ -12,98 +12,164 @@ function PatientProfile() {
     address: "123 Green Street, New York",
     allergies: "Peanuts",
     medicalHistory: "No chronic illness",
-    lifestyle: "Vegetarian, exercises regularly"
+    lifestyle: "Vegetarian, exercises regularly",
+    photo: "https://i.pravatar.cc/150?img=47"
   };
 
+  const appointments = [
+  {
+    id: 1,
+    date: "12 Jan 2026",
+    doctor: "Dr. Michael Brown",
+    department: "Cardiology",
+    canRebook: true
+  },
+  {
+    id: 2,
+    date: "28 Dec 2025",
+    doctor: "Dr. Sarah Lee",
+    department: "Dermatology",
+    canRebook: true
+  },
+  {
+    id: 3,
+    date: "05 Dec 2025",
+    doctor: "Dr. John Adams",
+    department: "General Medicine",
+    canRebook: true
+  }
+];
+
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div className="min-h-screen bg-purple-50 p-6">
+      
+      {/* Header */}
+      <div className="max-w-5xl mx-auto flex justify-between items-center mb-6">
         <button
-          style={styles.back}
           onClick={() => navigate("/patient/home")}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
         >
           ← Back
         </button>
 
-        <h2>Patient Profile</h2>
+        <h2 className="text-2xl font-bold text-purple-700">
+          Patient Profile
+        </h2>
 
         <button
-          style={styles.edit}
           onClick={() => navigate("/patient/profile/edit")}
+          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
         >
-          Edit
+          Edit Profile
         </button>
       </div>
 
-      <div style={styles.card}>
-        <ProfileRow label="Name" value={patient.name} />
-        <ProfileRow label="Age" value={patient.age} />
-        <ProfileRow label="Gender" value={patient.gender} />
-        <ProfileRow label="Date of Birth" value={patient.dob} />
-        <ProfileRow label="Blood Group" value={patient.bloodGroup} />
-        <ProfileRow label="Address" value={patient.address} />
-        <ProfileRow label="Allergies" value={patient.allergies} />
-        <ProfileRow label="Medical History" value={patient.medicalHistory} />
-        <ProfileRow label="Other Details" value={patient.lifestyle} />
+      {/* Profile Card */}
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+        
+        {/* Top Section */}
+        <div className="flex flex-col md:flex-row items-center gap-6 border-b pb-6">
+          <img
+            src={patient.photo}
+            alt="Patient"
+            className="w-32 h-32 rounded-full border-4 border-purple-200"
+          />
+
+          <div className="text-center md:text-left">
+            <h3 className="text-2xl font-bold text-gray-800">
+              {patient.name}
+            </h3>
+            <p className="text-gray-500">
+              {patient.gender}, {patient.age} years
+            </p>
+
+            <div className="mt-3 inline-block bg-purple-100 text-purple-700 px-4 py-1 rounded-full font-medium">
+              Blood Group: {patient.bloodGroup}
+            </div>
+          </div>
+        </div>
+
+        {/* Details Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          
+          <ProfileCard title="Personal Information">
+            <ProfileItem label="Date of Birth" value={patient.dob} />
+            <ProfileItem label="Address" value={patient.address} />
+          </ProfileCard>
+
+          <ProfileCard title="Medical Information">
+            <ProfileItem label="Allergies" value={patient.allergies} />
+            <ProfileItem label="Medical History" value={patient.medicalHistory} />
+            <ProfileItem label="Lifestyle" value={patient.lifestyle} />
+          </ProfileCard>
+
+        </div>
+
+{/* Appointment History */}
+<div className="mt-10">
+  <h3 className="text-xl font-bold text-purple-700 mb-4">
+    Previous Appointments
+  </h3>
+
+  <div className="space-y-4">
+    {appointments.map((appt) => (
+      <div
+        key={appt.id}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center bg-purple-50 rounded-xl p-4"
+      >
+        <div>
+          <p className="font-semibold text-gray-800">
+            {appt.department}
+          </p>
+          <p className="text-sm text-gray-600">
+            {appt.doctor}
+          </p>
+          <p className="text-sm text-gray-500">
+            {appt.date}
+          </p>
+        </div>
+
+        <button
+          disabled={!appt.canRebook}
+          onClick={() => navigate("/book_appt")}
+          className={`mt-3 md:mt-0 px-5 py-2 rounded-lg font-medium transition
+            ${
+              appt.canRebook
+                ? "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }
+          `}
+        >
+          Rebook
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
+
       </div>
     </div>
   );
 }
 
-function ProfileRow({ label, value }) {
+function ProfileCard({ title, children }) {
   return (
-    <div style={styles.row}>
-      <span style={styles.label}>{label}</span>
-      <span style={styles.value}>{value}</span>
+    <div className="bg-purple-50 rounded-xl p-4">
+      <h4 className="text-lg font-semibold text-purple-700 mb-3">
+        {title}
+      </h4>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function ProfileItem({ label, value }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-gray-600 font-medium">{label}</span>
+      <span className="text-gray-800">{value}</span>
     </div>
   );
 }
 
 export default PatientProfile;
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
-    padding: "20px"
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px"
-  },
-  back: {
-    background: "#34495e",
-    color: "#fff",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer"
-  },
-  edit: {
-    background: "#27ae60",
-    color: "#fff",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer"
-  },
-  card: {
-    background: "#fff",
-    padding: "25px",
-    borderRadius: "10px",
-    maxWidth: "600px",
-    margin: "auto",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-  },
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "10px 0",
-    borderBottom: "1px solid #eee"
-  },
-  label: {
-    fontWeight: "600"
-  }
-};
