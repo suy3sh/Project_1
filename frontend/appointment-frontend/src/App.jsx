@@ -33,6 +33,7 @@ function App() {
         <Route path="/patient/profile" element={<PatientProfile />} />
       <Route path="/patient/book" element={<BookAppointment />} />  
       </Route>
+      
 
       {/* Doctor Routes */}
       <Route element={<DoctorLayout />}>
