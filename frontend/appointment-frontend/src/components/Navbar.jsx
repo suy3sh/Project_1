@@ -17,7 +17,7 @@ function Navbar() {
                 <div className="flex gap-6">
                     <Link className="nav-link" to="/doctors"><button className="hover:underline">Doctors</button></Link>
                     <Link className="nav-link" to="/book_appt"><button className="hover:underline">Book an Appointment</button></Link>
-                    <Link className="nav-link" to="/profile"><button className="hover:underline">Profile</button></Link>
+                    <Link className="nav-link" to="/patient/profile"><button className="hover:underline">Profile</button></Link>
                 </div>
             </div>
         </nav>
