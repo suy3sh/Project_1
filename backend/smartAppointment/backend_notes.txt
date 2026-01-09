@@ -1,0 +1,21 @@
+Database connection (Make sure you're not on the business WiFi before running): 
+  - Double check that the application.properties file has:
+    spring.datasource.url=jdbc:postgresql://aws-0-us-west-2.pooler.supabase.com:5432/postgres?&sslmode=require
+    spring.datasource.username=postgres.dlwuipvhdfwhywnwnizt
+    spring.datasource.password=Team5Revature
+    spring.datasource.driver-class-name=org.postgresql.Driver
+
+Endpoints (http://localhost:8080):
+  - /smart-appointment
+    - /api
+      - /users (GET, returns all users)
+        - /{user_id} (GET, returns user with specified id)
+      - /login (POST)
+      - /register (POST)
+      - /patients (GET, return all patients)
+      - /doctors (GET)
+        - /{doctor_id} (GET)
+          - /appointments (GET)
+            - /{appointment_id} (GET)
+      - /appointments (GET)
+      - /time-slots (GET)
