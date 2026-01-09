@@ -15,6 +15,9 @@ import PatientHome from "./pages/patient/PatientHome";
 import PatientProfile from "./pages/patient/PatientProfile";
 import BookAppointment from "./pages/patient/BookAppointment";
 
+import DoctorHome from "./pages/doctor/DoctorHome";
+import DoctorCalendar from "./pages/doctor/DoctorCalendar";
+
 function App() {
   return (
     <Routes>
@@ -31,14 +34,14 @@ function App() {
       <Route element={<PatientLayout />}>
         <Route path="/patient/home" element={<PatientHome />} />
         <Route path="/patient/profile" element={<PatientProfile />} />
-      <Route path="/patient/book" element={<BookAppointment />} />  
+        <Route path="/patient/book" element={<BookAppointment />} />  
       </Route>
       
 
       {/* Doctor Routes */}
       <Route element={<DoctorLayout />}>
-        <Route path="/doctor/today" element={<div>Today</div>} />
-        <Route path="/doctor/calendar" element={<div>Calendar</div>} />
+        <Route path="/doctor/home" element={<DoctorHome />} />
+        <Route path="/doctor/calendar" element={<DoctorCalendar />} />
       </Route>
 
     </Routes>

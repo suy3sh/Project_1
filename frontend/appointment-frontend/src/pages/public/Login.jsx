@@ -19,6 +19,8 @@ function Login() {
     // TEMP login success
     if (role === "patient") {
       navigate("/patient/home");
+    } else if (role === "staff") {
+      navigate("/doctor/home");
     }
   };
 
