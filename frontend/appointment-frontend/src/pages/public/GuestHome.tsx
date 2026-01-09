@@ -1,15 +1,16 @@
 import { useState } from "react";
-import Calendar from "react-calendar";
+import Calendar, { Value } from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
-function GuestHome() {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const navigate = useNavigate(); 
+const GuestHome: React.FC = () => {
+  // react-calendar uses this type for value
+  const [selectedDate, setSelectedDate] = useState<Value | null>(null);
+
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
-      
-    
       {/* HERO SECTION */}
       <section className="flex flex-col items-center text-center px-6 py-24">
         <h1 className="text-5xl font-extrabold text-gray-800 mb-6">
@@ -17,17 +18,22 @@ function GuestHome() {
         </h1>
 
         <p className="text-xl text-gray-600 max-w-2xl mb-10">
-          Book your appointment with ease and connect with the best healthcare professionals
+          Book your appointment with ease and connect with the best healthcare
+          professionals
         </p>
 
         <div className="flex gap-6">
-          <button onClick={() => navigate("/login")}
-           className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition">
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition"
+          >
             Log In
           </button>
 
-          <button onClick={() => navigate("/doctors")}
-          className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition">
+          <button
+            onClick={() => navigate("/doctors")}
+            className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition"
+          >
             Find Doctors
           </button>
         </div>
@@ -47,9 +53,8 @@ function GuestHome() {
           />
         </div>
       </section>
-
     </div>
   );
-}
+};
 
 export default GuestHome;
