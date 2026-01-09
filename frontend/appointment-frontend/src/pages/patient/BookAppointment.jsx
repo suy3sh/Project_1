@@ -1,16 +1,33 @@
 import { useState } from "react";
-
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 function BookAppointment() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedService, setSelectedService] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  
+
+const location = useLocation();
+const navigate = useNavigate();
+
+const preselectedDoctorId = location.state?.doctorId;
 
   const doctors = [
     {
       id: 1,
-      name: "Dr. Olivia Martinez",
-      specialty: "Primary Care",
+      name: "Dr. Ben Martinez",
+      specialty: "Cardiology",
+      services: [
+       "Heart Checkup",
+        "ECG Review",
+        "Blood Pressure Monitoring",
+      ],
+    },
+    {
+      id: 2,
+      name: "Dr. Samuel Chen",
+      specialty: "General Medicine",
       services: [
         "General Checkup",
         "Physical Examination",
@@ -18,26 +35,28 @@ function BookAppointment() {
       ],
     },
     {
-      id: 2,
-      name: "Dr. Priya Patel",
-      specialty: "OB-GYN",
-      services: [
-        "Prenatal Checkup",
-        "Women's Health Consultation",
-        "Ultrasound Review",
-      ],
-    },
-    {
       id: 3,
       name: "Dr. Layal Al-Sayed",
-      specialty: "Cardiology",
+      specialty: "Pediatrics",
       services: [
-        "Heart Checkup",
-        "ECG Review",
-        "Blood Pressure Monitoring",
+        "Vaccination",
+        "Fever/Cold Treatment",
+        "Child Growth Monitoring",
       ],
     },
   ];
+
+
+   useEffect(() => {
+    if (preselectedDoctorId) {
+      const doctor = doctors.find(
+        (d) => d.id === preselectedDoctorId
+      );
+      if (doctor) {
+        setSelectedDoctor(doctor);
+      }
+    }
+  }, [preselectedDoctorId]);
 
   const availableTimes = [
     "09:00 AM",
@@ -60,7 +79,12 @@ Time: ${time}`
   return (
     <div className="min-h-screen bg-purple-50 px-6 py-10">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-
+   <button
+        onClick={() => navigate("/patient/doctors")}
+        className="mb-4 text-indigo-600 hover:underline"
+      >
+        ← Back 
+      </button>
         {/* HEADER */}
         <h1 className="text-3xl font-bold text-center text-purple-700 mb-2">
           Book Appointment
@@ -68,7 +92,7 @@ Time: ${time}`
         <p className="text-center text-gray-500 mb-8">
           Choose doctor, service, date and time
         </p>
-
+        
         {/* STEP 1: DOCTOR */}
         <h2 className="font-semibold mb-3">1. Select Doctor</h2>
         <div className="space-y-4 mb-8">

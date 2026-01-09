@@ -20,22 +20,22 @@ function PatientProfile() {
   {
     id: 1,
     date: "12 Jan 2026",
-    doctor: "Dr. Michael Brown",
+    doctor: "Dr. Ben Martinez",
     department: "Cardiology",
     canRebook: true
   },
   {
     id: 2,
     date: "28 Dec 2025",
-    doctor: "Dr. Sarah Lee",
-    department: "Dermatology",
+    doctor: "Dr. Samuel Chen",
+    department: "General Medicine",
     canRebook: true
   },
   {
     id: 3,
     date: "05 Dec 2025",
-    doctor: "Dr. John Adams",
-    department: "General Medicine",
+    doctor: "Dr. Leya Al-Sayed",
+    department: "Pediatrics",
     canRebook: true
   }
 ];
