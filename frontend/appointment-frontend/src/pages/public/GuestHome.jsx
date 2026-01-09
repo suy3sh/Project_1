@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 function GuestHome() {
   const [selectedDate, setSelectedDate] = useState(null);
-const navigate = useNavigate(); 
+  const navigate = useNavigate(); 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       
