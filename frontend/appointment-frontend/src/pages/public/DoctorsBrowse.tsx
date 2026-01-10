@@ -5,6 +5,7 @@ function DoctorsBrowse() {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState(null);
 
+  //TEMPORARY
   const doctors = [
     {
       id: 1,
