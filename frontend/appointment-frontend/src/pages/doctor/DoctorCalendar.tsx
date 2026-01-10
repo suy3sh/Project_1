@@ -1,4 +1,53 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { Value } from "react-calendar/dist/shared/types";
+
+// ---------- Types ----------
+type ActionResult = { isOk: boolean; message?: string };
+
+type Appointment = {
+  id?: number;
+  __backendId?: number;
+  patient_name?: string;
+  appointment_type?: string;
+  date?: string; // "YYYY-MM-DD"
+  time?: string; // "HH:MM"
+  [key: string]: unknown;
+};
+
+type Props = {
+  title?: string;
+  noAppointmentsMessage?: string;
+  appointments?: Appointment[] | null;
+  onDelete?: (apt: Appointment) => Promise<ActionResult>;
+  onUpdate?: (apt: Appointment) => Promise<ActionResult>;
+};
+
+type EditFormState = {
+  patient_name: string;
+  appointment_type: string;
+  date: string;
+  time: string;
+};
+
+// ---------- Helpers ----------
+function toYMD(d: Date): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatDateLongFromYMD(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export default function DoctorCalendar({
   title = "Appointment Calendar",
@@ -6,16 +55,16 @@ export default function DoctorCalendar({
   appointments: appointmentsProp = [],
   onDelete = async () => ({ isOk: true }),
   onUpdate = async () => ({ isOk: true }),
-}) {
-  const today = useMemo(() => new Date(), []);
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-11
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
-  const [isModalOpen, setIsModalOpen] = useState(false);
+}: Props) {
+  const appointments = useMemo<Appointment[]>(() => appointmentsProp ?? [], [appointmentsProp]);
+
+  // Store selected date as a Date (react-calendar is Date-based)
+  const [selectedDateObj, setSelectedDateObj] = useState<Date | null>(new Date());
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   // Editing state
-  const [editingApt, setEditingApt] = useState(null);
-  const [editForm, setEditForm] = useState({
+  const [editingApt, setEditingApt] = useState<Appointment | null>(null);
+  const [editForm, setEditForm] = useState<EditFormState>({
     patient_name: "",
     appointment_type: "",
     date: "",
@@ -23,42 +72,14 @@ export default function DoctorCalendar({
   });
 
   // UX state
-  const [deleteBusyId, setDeleteBusyId] = useState(null);
-  const [updateBusy, setUpdateBusy] = useState(false);
-  const [modalError, setModalError] = useState("");
+  const [deleteBusyId, setDeleteBusyId] = useState<number | null>(null);
+  const [updateBusy, setUpdateBusy] = useState<boolean>(false);
+  const [modalError, setModalError] = useState<string>("");
 
-  const monthNames = useMemo(
-    () => [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ],
-    []
-  );
-
-  const years = useMemo(() => {
-    const start = currentYear - 5;
-    return Array.from({ length: 10 }, (_, i) => start + i);
-  }, [currentYear]);
-
-  const firstDay = useMemo(() => new Date(currentYear, currentMonth, 1), [currentYear, currentMonth]);
-  const lastDay = useMemo(() => new Date(currentYear, currentMonth + 1, 0), [currentYear, currentMonth]);
-  const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay(); // 0 = Sun
-
-  const appointments = useMemo(() => appointmentsProp ?? [], [appointmentsProp]);
+  const selectedDateYMD = useMemo(() => (selectedDateObj ? toYMD(selectedDateObj) : null), [selectedDateObj]);
 
   const appointmentsByDate = useMemo(() => {
-    const map = new Map();
+    const map = new Map<string, Appointment[]>();
     for (const apt of appointments) {
       if (!apt?.date) continue;
       const arr = map.get(apt.date) ?? [];
@@ -69,81 +90,52 @@ export default function DoctorCalendar({
   }, [appointments]);
 
   const selectedDayAppointments = useMemo(() => {
-    if (!selectedDate) return [];
-    const list = (appointmentsByDate.get(selectedDate) ?? []).slice();
-    // Canva used localeCompare; keep same behavior (works best with "HH:MM")
+    if (!selectedDateYMD) return [];
+    const list = (appointmentsByDate.get(selectedDateYMD) ?? []).slice();
     list.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
     return list;
-  }, [appointmentsByDate, selectedDate]);
-
-  // Close modal with Esc
-  useEffect(() => {
-    if (!isModalOpen) return;
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") closeModal();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isModalOpen]);
-
-  function formatDateLong(dateStr) {
-    // dateStr: YYYY-MM-DD
-    const d = new Date(`${dateStr}T00:00:00`);
-    return d.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
-
-  function openDay(dateStr) {
-    setModalError("");
-    setEditingApt(null);
-    setSelectedDate(dateStr);
-    setIsModalOpen(true);
-  }
+  }, [appointmentsByDate, selectedDateYMD]);
 
   function closeModal() {
     setIsModalOpen(false);
-    setSelectedDate(null);
     setEditingApt(null);
     setModalError("");
     setDeleteBusyId(null);
     setUpdateBusy(false);
   }
 
-  function goPrevMonth() {
-    setModalError("");
-    setEditingApt(null);
-    setSelectedDate(null);
-    setIsModalOpen(false);
+  // Close modal with Esc
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isModalOpen]);
 
-    setCurrentMonth((m) => {
-      if (m === 0) {
-        setCurrentYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
+  // react-calendar onChange typing-safe handler
+  function onCalendarChange(value: Value) {
+    if (value instanceof Date) {
+      setSelectedDateObj(value);
+      return;
+    }
+    if (Array.isArray(value) && value[0] instanceof Date) {
+      // If range mode ever gets enabled, keep start date
+      setSelectedDateObj(value[0]);
+      return;
+    }
+    setSelectedDateObj(null);
   }
 
-  function goNextMonth() {
+  function openDay(date: Date) {
     setModalError("");
     setEditingApt(null);
-    setSelectedDate(null);
-    setIsModalOpen(false);
-
-    setCurrentMonth((m) => {
-      if (m === 11) {
-        setCurrentYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
+    setSelectedDateObj(date);
+    setIsModalOpen(true);
   }
 
-  function beginEdit(apt) {
+  function beginEdit(apt: Appointment) {
     setModalError("");
     setEditingApt(apt);
     setEditForm({
@@ -154,9 +146,12 @@ export default function DoctorCalendar({
     });
   }
 
-  async function handleDelete(apt) {
+  async function handleDelete(apt: Appointment) {
     setModalError("");
-    setDeleteBusyId(apt.__backendId ?? apt.id ?? "busy");
+
+    const busyId = apt.__backendId ?? apt.id ?? 0;
+    setDeleteBusyId(busyId);
+
     try {
       const result = await onDelete(apt);
       if (!result?.isOk) {
@@ -169,14 +164,14 @@ export default function DoctorCalendar({
     }
   }
 
-  async function handleUpdate(e) {
+  async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingApt) return;
 
     setModalError("");
     setUpdateBusy(true);
 
-    const updatedAppointment = {
+    const updatedAppointment: Appointment = {
       ...editingApt,
       patient_name: editForm.patient_name,
       appointment_type: editForm.appointment_type,
@@ -187,7 +182,7 @@ export default function DoctorCalendar({
     try {
       const result = await onUpdate(updatedAppointment);
       if (result?.isOk) {
-        setEditingApt(null); // go back to list view
+        setEditingApt(null);
       } else {
         setModalError("Failed to update appointment. Please try again.");
       }
@@ -201,119 +196,55 @@ export default function DoctorCalendar({
   return (
     <div className="w-full min-h-screen bg-slate-50 text-slate-800">
       <div className="w-full h-full p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-3">{title}</h1>
-              <h3 className="m-0 mb-10 font-medium text-slate-500 text-lg">Handle and manage your appointments.</h3>
-
-              <div className="flex items-center gap-4 flex-wrap">
-                <button
-                  type="button"
-                  onClick={goPrevMonth}
-                  className="px-4 py-2 rounded bg-slate-500 text-white font-medium text-sm hover:opacity-90 active:opacity-80"
-                >
-                  ← Previous
-                </button>
-
-                <select
-                  value={currentMonth}
-                  onChange={(e) => setCurrentMonth(Number(e.target.value))}
-                  className="px-4 py-2 rounded border-2 border-slate-500/70 text-sm bg-white cursor-pointer"
-                  aria-label="Select month"
-                >
-                  {monthNames.map((name, idx) => (
-                    <option key={name} value={idx}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={currentYear}
-                  onChange={(e) => setCurrentYear(Number(e.target.value))}
-                  className="px-4 py-2 rounded border-2 border-slate-500/70 text-sm bg-white cursor-pointer"
-                  aria-label="Select year"
-                >
-                  {years.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  type="button"
-                  onClick={goNextMonth}
-                  className="px-4 py-2 rounded bg-slate-500 text-white font-medium text-sm hover:opacity-90 active:opacity-80"
-                >
-                  Next →
-                </button>
-              </div>
+              <h3 className="m-0 mb-6 font-medium text-slate-500 text-lg">Handle and manage your appointments.</h3>
             </div>
 
-            {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="py-3 text-center font-semibold text-sm">
-                  {day}
-                </div>
-              ))}
-            </div>
+            {/* React Calendar */}
+            <div className="rounded-lg border border-slate-200 p-3">
+              <Calendar
+                value={selectedDateObj}
+                onChange={onCalendarChange}
+                onClickDay={openDay}
+                selectRange={false}
+                // Show an appointment count badge inside each day tile
+                tileContent={({ date, view }) => {
+                  if (view !== "month") return null;
+                  const key = toYMD(date);
+                  const count = appointmentsByDate.get(key)?.length ?? 0;
+                  if (count === 0) return null;
 
-            {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {/* Leading blanks */}
-              {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-                <div key={`blank-${i}`} className="aspect-square rounded bg-slate-50" />
-              ))}
-
-              {/* Days */}
-              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((dayNum) => {
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(
-                  2,
-                  "0"
-                )}`;
-                const count = (appointmentsByDate.get(dateStr) ?? []).length;
-
-                return (
-                  <button
-                    key={dateStr}
-                    type="button"
-                    onClick={() => openDay(dateStr)}
-                    className="calendar-day aspect-square bg-white border-2 border-slate-500/20 rounded p-2 text-left flex flex-col relative hover:-translate-y-0.5 hover:shadow-md transition-all"
-                    aria-label={`Open appointments for ${dateStr}`}
-                  >
-                    <div className="font-semibold text-sm">{dayNum}</div>
-
-                    {count > 0 && (
-                      <div className="appointment-badge mt-auto px-2 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold text-center">
-                        {count} apt{count !== 1 ? "s" : ""}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <div className="mt-1 flex justify-center">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[10px] font-semibold">
+                        {count}
+                      </span>
+                    </div>
+                  );
+                }}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Modal */}
-      {isModalOpen && selectedDate && (
+      {isModalOpen && selectedDateYMD && (
         <div
           className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50"
-          onMouseDown={(e) => {
-            // close when clicking overlay
+          onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
             if (e.target === e.currentTarget) closeModal();
           }}
           role="dialog"
           aria-modal="true"
           aria-label="Appointments modal"
         >
-          <div className="modal-content bg-white rounded-lg p-6 w-full max-w-xl max-h-[80vh] overflow-y-auto shadow-xl animate-[slideUp_0.3s_ease]">
+          <div className="bg-white rounded-lg p-6 w-full max-w-xl max-h-[80vh] overflow-y-auto shadow-xl animate-[slideUp_0.3s_ease]">
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-2xl font-bold">{formatDateLong(selectedDate)}</h2>
+              <h2 className="text-2xl font-bold">{formatDateLongFromYMD(selectedDateYMD)}</h2>
               <button
                 type="button"
                 onClick={closeModal}
@@ -403,18 +334,20 @@ export default function DoctorCalendar({
                 ) : (
                   <div className="flex flex-col gap-4">
                     {selectedDayAppointments.map((apt) => {
-                      const id = apt.__backendId ?? apt.id ?? `${apt.date}-${apt.time}-${apt.patient_name}`;
+                      const id = apt.__backendId ?? apt.id ?? 0;
                       const isDeleting = deleteBusyId === id;
 
+                      // If id is missing, use a deterministic fallback key
+                      const key = id ? String(id) : `${apt.date}-${apt.time}-${apt.patient_name}`;
+
                       return (
-                        <div
-                          key={id}
-                          className="border-2 border-slate-500/20 rounded-md p-4 bg-white"
-                        >
+                        <div key={key} className="border-2 border-slate-500/20 rounded-md p-4 bg-white">
                           <div className="flex justify-between items-start gap-3 mb-2">
                             <div>
-                              <div className="font-semibold text-lg">{apt.patient_name}</div>
-                              <div className="text-blue-500 text-sm font-medium">{apt.appointment_type}</div>
+                              <div className="font-semibold text-lg">{String(apt.patient_name ?? "")}</div>
+                              <div className="text-blue-500 text-sm font-medium">
+                                {String(apt.appointment_type ?? "")}
+                              </div>
                             </div>
 
                             <div className="flex gap-2">
@@ -436,7 +369,7 @@ export default function DoctorCalendar({
                             </div>
                           </div>
 
-                          <div className="font-semibold text-sm">🕐 {apt.time}</div>
+                          <div className="font-semibold text-sm">🕐 {String(apt.time ?? "")}</div>
                         </div>
                       );
                     })}
@@ -448,11 +381,17 @@ export default function DoctorCalendar({
         </div>
       )}
 
-      {/* Keyframes to match Canva animations (optional) */}
       <style>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Optional: make react-calendar blend better with Tailwind layouts */
+        .react-calendar {
+          width: 100%;
+          border: none;
+          font-family: inherit;
         }
       `}</style>
     </div>

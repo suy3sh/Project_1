@@ -1,26 +1,28 @@
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth";
 import GuestHome from "./GuestHome";
-import PatientHome from "../patient/PatientHome";
 
 
-function Home() {
+export default function Home() {
 
-    //THIS IS PLACEHOLDER CODE
-    //REPLACE WITH AUTHENTICATION OF USER TO DETERMINE IF USER EXISTS AND THE USER ROLE
-    const user = false;
+    const { isAuthenticated, user } = useAuth();
 
-    //If there is no user, return the GuestHome page
-    if (!user) return <GuestHome/>;
-    
-    //PLACE HOLDER CODE
-    if (user) return <PatientHome/>;
+    if (!isAuthenticated || !user) {
+        return <GuestHome />;
+    }
 
-    //WHAT IT SHOULD LOOK LIKE IN THE FUTURE
-    /*
-    if (user.role === "PATIENT") return <PatientHome />;
-    if (user.role === "DOCTOR") return <DoctorHome />;
-    if (user.role === "ADMIN") return <AdminHome />;
-    */
+    switch (user.role) {
+        case "PATIENT":
+            return <Navigate to="/patient/home" replace />;
+        case "DOCTOR":
+            return <Navigate to="/doctor/home" replace />;
+        case "ADMIN":
+            return <Navigate to="/admin/home" replace />;
+        case "SUPER":
+            return <Navigate to="/super/home" replace />;
+        default:
+            return <GuestHome />;
+    }
+
 
 }
-
-export default Home;

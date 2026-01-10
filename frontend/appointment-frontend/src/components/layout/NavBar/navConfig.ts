@@ -26,7 +26,7 @@ export function getNavItems(role: Role, actions: {logout: () => void}): NavItem[
 
         case "ADMIN":
             return [
-                {kind: "link", label: "Schedules", to: "/admin/schedules"},
+                {kind: "link", label: "Schedules", to: "/admin/home"},
                 {kind: "link", label: "Staff List", to: "/admin/staff"},
                 {kind: "button", label: "Logout", onClick: actions.logout},
             ];

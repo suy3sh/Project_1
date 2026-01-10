@@ -1,11 +1,24 @@
 import { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { Value } from "react-calendar/dist/shared/types";
 import { useNavigate } from "react-router-dom";
 
 function PatientHome() {
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const navigate = useNavigate();
+
+  const handleChange = (value: Value) => {
+    // In non-range mode, value should be a Date (or null in some typings)
+    if (value instanceof Date) {
+      setSelectedDate(value);
+    } else if (Array.isArray(value)) {
+      // If you ever enable range, pick start date (or handle differently)
+      setSelectedDate(value[0]);
+    } else {
+      setSelectedDate(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
@@ -29,6 +42,13 @@ function PatientHome() {
           {/* NO LOGIN BUTTON HERE */}
 
           <button
+            onClick={() => navigate("/patient/book")}
+            className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition"
+          >
+            Book an Appointment
+          </button>
+
+          <button
             onClick={() => navigate("/doctors")}
             className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition"
           >
@@ -45,7 +65,7 @@ function PatientHome() {
           </h2>
 
           <Calendar
-            onChange={setSelectedDate}
+            onChange={handleChange}
             value={selectedDate}
             className="rounded-lg"
           />
