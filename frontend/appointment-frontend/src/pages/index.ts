@@ -1,16 +1,16 @@
-//public pages
-export { default as Home } from "./public/Home.jsx";
-export { default as GuestHome } from "./public/GuestHome.jsx";
-export { default as Login } from "./public/Login.jsx";
-export { default as Register } from "./public/Register.jsx";
-export { default as DoctorsBrowse } from "./public/DoctorsBrowse.jsx";
+// public pages
+export { default as Home } from "./public/Home";
+export { default as GuestHome } from "./public/GuestHome";
+export { default as Login } from "./public/Login";
+export { default as Register } from "./public/Register";
+export { default as DoctorsBrowse } from "./public/DoctorsBrowse";
 
-//patient pages
-export { default as PatientHome } from "./patient/PatientHome.jsx";
-export { default as BookAppointment } from "./patient/BookAppointment.jsx";
-export { default as PatientProfile } from "./patient/PatientProfile.jsx";
-export { default as EditPatientProfile } from "./patient/EditPatientProfile.jsx";
+// patient pages
+export { default as PatientHome } from "./patient/PatientHome";
+export { default as BookAppointment } from "./patient/BookAppointment";
+export { default as PatientProfile } from "./patient/PatientProfile";
+export { default as EditPatientProfile } from "./patient/EditPatientProfile";
 
-//doctor pagess
-export { default as DoctorHome } from "./doctor/DoctorHome.jsx";
-export { default as DoctorProfile } from "./doctor/DoctorProfile.jsx";
+// doctor pages
+export { default as DoctorHome } from "./doctor/DoctorHome";
+export { default as DoctorProfile } from "./doctor/DoctorProfile";
