@@ -1,30 +1,44 @@
-import { FaHospital } from "react-icons/fa6";
+import { FaHospital } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
-function PatientNavbar() {
+const PatientNavbar: React.FC = () => {
   const navigate = useNavigate();
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/", { replace: true });
-};
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   return (
-    <nav className="bg-purple-600 text-white px-6 py-4 flex justify-between">
-      <h1 className="flex items-center gap-3 text-2xl font-bold">
-         <FaHospital />
-        Smart Appointment System</h1>
-
-      <div className="space-x-6">
-        <Link to="/patient/doctors">Doctors</Link>
-        {/*<Link to="/book_appt">Book Appointment</Link>*/}
-        <Link to="/patient/profile">Profile</Link>
-        <Link to="/patient/book">Book Appointment</Link>
-
-        <button onClick={logout}>Logout</button>
+    <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-md">
+      {/* LEFT */}
+      <div className="flex items-center gap-2 text-indigo-600 font-bold text-xl">
+        <FaHospital />
+        <span>Smart Appointment System</span>
       </div>
+
+      {/* CENTER LINKS */}
+      <div className="flex gap-6 text-gray-700 font-medium">
+        <Link to="/patient" className="hover:text-indigo-600">
+          Home
+        </Link>
+        <Link to="/patient/doctors" className="hover:text-indigo-600">
+          Doctors
+        </Link>
+        <Link to="/patient/profile" className="hover:text-indigo-600">
+          Profile
+        </Link>
+      </div>
+
+      {/* RIGHT */}
+      <button
+        onClick={handleLogout}
+        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+      >
+        Logout
+      </button>
     </nav>
   );
-}
+};
 
 export default PatientNavbar;
