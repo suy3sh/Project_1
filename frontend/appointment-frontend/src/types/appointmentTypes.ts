@@ -17,3 +17,6 @@ export type Appointment = {
   status: string
 };
 
+export interface AppointmentTypeObj {
+  name: string;
+}

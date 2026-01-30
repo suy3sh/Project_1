@@ -34,6 +34,12 @@ public class Patient {
     @Column(name = "address")
     private String address;
 
+    @Column(nullable = false)
+    private boolean noAllergies;
+
+    @Column(length = 255)
+    private String drugAllergies;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blood_type_id")
     private BloodType bloodType;

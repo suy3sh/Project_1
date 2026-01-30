@@ -9,6 +9,8 @@ export type Patient = {
     gender: string | null;
     phoneNumber: string | null;
     allergies: Allergy[];
+     noAllergies: boolean;
+    drugAllergies: string | null;
     user: User;
 }
 
@@ -30,6 +32,8 @@ export type PatchPatientRequest = {
     dateOfBirth: string;
     gender: "male" | "female" | "other";
     phoneNumber: string;
+    noAllergies: boolean;
+  drugAllergies: string;
 };
 
 export type PatchPatientResponse = {
@@ -37,6 +41,7 @@ export type PatchPatientResponse = {
     address: string;
     age: number;
     allergies: Allergy[];
+   
     bloodType: BloodType;
     dateOfBirth: string;
     gender: string;
@@ -59,6 +64,8 @@ export type PatientDetailsForm = {
     dateOfBirth: string;
     bloodType: string;      
     allergyIds: number[];   //checkbox
+    noAllergies: boolean;       // "No allergies" checkbox
+    drugAllergies: string;      // free text for drug allergies
 };
 
 export type PatientEditForm = {
@@ -70,4 +77,6 @@ export type PatientEditForm = {
   phoneNumber: string;
   bloodType: string;
   allergyIds: number[];
+  noAllergies: boolean;
+  drugAllergies: string;
 };

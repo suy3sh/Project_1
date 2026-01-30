@@ -72,6 +72,51 @@ public class PatientService implements ServiceInterface<Patient> {
     }
      
     @Transactional
+    public Patient updatePatientByUserId(int userId, PatientInfoRequest info) {
+
+        Patient patient = patientRepository
+            .findPatientByUser_UserId(userId)
+            .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        // -------- Basic fields --------
+        patient.setAge(info.getAge());
+        patient.setAddress(info.getAddress());
+        patient.setGender(info.getGender());
+        patient.setPhoneNumber(info.getPhoneNumber());
+        patient.setDateOfBirth(info.getDateOfBirth());
+
+        // -------- NEW fields --------
+        patient.setNoAllergies(info.isNoAllergies());
+        patient.setDrugAllergies(info.getDrugAllergies());
+
+        // -------- Blood Type (CRITICAL FIX) --------
+        patient.setBloodType(
+            bloodTypeService
+                .findBloodTypeByName(info.getBloodType())
+                .orElseThrow(() -> new RuntimeException("Invalid blood type"))
+        );
+
+        // -------- Allergies (CRITICAL FIX) --------
+        if (info.isNoAllergies()) {
+            patient.getAllergies().clear();
+        } else {
+            List<Allergy> allergyList = new ArrayList<>();
+
+            for (String allergyName : info.getAllergies()) {
+                Allergy allergy = allergyService
+                    .findAllergyByName(allergyName)
+                    .orElseThrow(() -> new RuntimeException("Invalid allergy"));
+                allergyList.add(allergy);
+            }
+
+            patient.setAllergies(allergyList);
+        }
+
+        return patientRepository.save(patient);
+    }
+
+
+    @Transactional
     public Optional<Patient> findByUserId(int user_id) {
         return patientRepository.findPatientByUser_UserId(user_id);
     }

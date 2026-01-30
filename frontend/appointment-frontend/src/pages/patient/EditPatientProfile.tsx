@@ -16,6 +16,8 @@ const emptyForm: PatientEditForm = {
   phoneNumber: "",
   bloodType: "",
   allergyIds: [],
+  noAllergies: false,
+   drugAllergies:"",
 };
 
 type EditProfileLocationState = {
@@ -107,6 +109,8 @@ function EditPatientProfile() {
 			phoneNumber: patient.phoneNumber ?? "",
 			bloodType: patient.bloodType?.name ?? "",
 			allergyIds: patient.allergies?.map((a) => a.allergyId) ?? [],
+       noAllergies: patient.noAllergies ?? false,
+      drugAllergies: patient.drugAllergies ?? "",
 		});
   	}, [patient]);
 
@@ -124,11 +128,13 @@ function EditPatientProfile() {
 			dateOfBirth: form.dateOfBirth,
 			gender: form.gender,
 			phoneNumber: form.phoneNumber,
+      noAllergies: form.noAllergies,
+      drugAllergies: form.drugAllergies,
 		};
 		
 		console.log("PATCH payload", payload);
 
-		await patchPatient(patient.user.userId, payload);
+		await patchPatient(patient.patientId, payload);
 	};
 
     const handleSubmit = async () => {

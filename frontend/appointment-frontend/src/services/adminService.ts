@@ -135,6 +135,23 @@ export async function denyAppointment(appointmentId: number) {
   }
 }
 
+export async function cancelAppointment(appointmentId: number) {
+  const url = `/admin/appointments/${appointmentId}/cancel`;
+  logRequest("PUT", url);
+  try {
+    const { data } = await http.put<AdminAppointment>(url);
+    return data;
+  } catch (error) {
+    logError("PUT", url, error);
+    throw error;
+  }
+}
+
+
+
+
+
+
 export type StaffMember = {
   id: number;
   name: string;

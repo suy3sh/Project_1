@@ -9,6 +9,7 @@ import {
   createAvailabilityWindow,
   deleteAvailabilityWindow,
   denyAppointment,
+  cancelAppointment,
   fetchAdminAppointments,
   fetchAdminTimeSlots,
   fetchAvailabilityWindows,
@@ -129,14 +130,15 @@ export default function AdminHome() {
       });
   };
 
-  const handleDenyAppointment = (appointmentId: number) => {
-    denyAppointment(appointmentId)
-      .then(() => fetchAdminAppointments("ALL"))
-      .then(setAppointments)
-      .catch((error) => {
-        console.error("AdminHome: failed to deny appointment", error);
-      });
-  };
+ const handleCancelAppointment = (appointmentId: number) => {
+  cancelAppointment(appointmentId)
+    .then(() => fetchAdminAppointments("ALL"))
+    .then(setAppointments)
+    .catch((error) => {
+      console.error("AdminHome: failed to cancel appointment", error);
+    });
+};
+
 
   return (
     <div className="w-full min-h-screen bg-slate-50">
@@ -268,21 +270,20 @@ export default function AdminHome() {
                             ? appt.scheduledDateTime.split("T")[1]?.slice(0, 5) ?? "—"
                             : "—"}
                       </td>
-                      <td className="px-4 py-3">
-                        {typeof appt.appointmentType === "string"
-                          ? appt.appointmentType
-                          : appt.appointmentType?.name ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">{appt.status}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => handleDenyAppointment(appt.appointmentId)}
-                          className="px-3 py-1 rounded-md text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60"
-                          disabled={appt.status === "DENIED" || appt.status === "CANCELLED"}
-                        >
-                          Deny
-                        </button>
-                      </td>
+                     <td className="px-4 py-3">
+  {appt.appointmentType ?? "—"}
+</td>
+<td className="px-4 py-3">{appt.status}</td>
+<td className="px-4 py-3">
+  <button
+    onClick={() => handleCancelAppointment(appt.appointmentId)}
+    className="px-3 py-1 rounded-md text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60"
+    disabled={appt.status === "CANCELLED"}
+  >
+    Cancel
+  </button>
+</td>
+
                     </tr>
                   ))}
                 </tbody>
