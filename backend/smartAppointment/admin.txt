@@ -1,0 +1,18 @@
+Admin should be able to:
+
+#   View all doctors
+#    Manage doctor schedules
+#     View all appointments
+#     Accept appointments
+#     Cancel appointments
+#      Reschedule appointments
+
+
+Controller
+ └── admin
+     └── AdminController.java
+
+Service
+ └── admin
+     └── AdminAppointmentService.java
+     └── AdminScheduleService.java

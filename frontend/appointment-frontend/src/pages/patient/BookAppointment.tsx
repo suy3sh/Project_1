@@ -1,186 +1,233 @@
-import { useState } from "react";
-import { useEffect } from "react";
+// src/pages/BookAppointment.tsx
+import DoctorBrowseFilters from "@/components/doctor/DoctorBrowseFilters";
+import { useDoctorsBrowse } from "@/services/useDoctorBrowse";
+import { AppointmentType, Doctor } from "@/types/doctorTypes";
+import type { TimeSlot } from "@/types/slotTypes";
+import { useEffect, useState, useRef, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-function BookAppointment() {
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [selectedService, setSelectedService] = useState("");
+import { AuthContext, AuthContextType } from "@/auth/AuthContext";
+import { fetchDoctorSlots } from "@/services/slotService";
+import { formatTime } from "@/utils/validators";
+
+export default function BookAppointment() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  /* ================= AUTH ================= */
+  const auth = useContext<AuthContextType | null>(AuthContext);
+  const user = auth?.user ?? null;
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+
+  /* ================= PREFILL ================= */
+  const prefillQuery: string | undefined = location.state?.prefillQuery;
+  const preselectedDoctorId: number | undefined =
+    location.state?.doctorId ??
+    location.state?.doctor?.doctorId ??
+    location.state?.doctor?.id;
+
+  const didPrefillRef = useRef(false);
+
+  /* ================= DATA ================= */
+  const {
+    filteredDoctors = [],
+    loading,
+    error,
+    query,
+    setQuery,
+    speciality,
+    setSpeciality,
+    gender,
+    setGender,
+    specialityOptions = [],
+    genderOptions = [],
+  } = useDoctorsBrowse();
+
+  /* ================= STATE ================= */
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<AppointmentType | null>(null);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
 
-const location = useLocation();
-const navigate = useNavigate();
-
-const preselectedDoctorId = location.state?.doctorId;
-
-  const doctors = [
-    {
-      id: 1,
-      name: "Dr. Ben Martinez",
-      specialty: "Cardiology",
-      services: [
-       "Heart Checkup",
-        "ECG Review",
-        "Blood Pressure Monitoring",
-      ],
-    },
-    {
-      id: 2,
-      name: "Dr. Samuel Chen",
-      specialty: "General Medicine",
-      services: [
-        "General Checkup",
-        "Physical Examination",
-        "Vaccination",
-      ],
-    },
-    {
-      id: 3,
-      name: "Dr. Layal Al-Sayed",
-      specialty: "Pediatrics",
-      services: [
-        "Vaccination",
-        "Fever/Cold Treatment",
-        "Child Growth Monitoring",
-      ],
-    },
-  ];
-
-
-   useEffect(() => {
-    if (preselectedDoctorId) {
-      const doctor = doctors.find(
-        (d) => d.id === preselectedDoctorId
-      );
-      if (doctor) {
-        setSelectedDoctor(doctor);
-      }
+  /* ================= EFFECTS ================= */
+  // Prefill query and doctor selection
+  useEffect(() => {
+    if (!didPrefillRef.current && prefillQuery) {
+      setQuery(prefillQuery);
+      didPrefillRef.current = true;
     }
-  }, [preselectedDoctorId]);
 
-  const availableTimes = [
-    "09:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "02:00 PM",
-    "03:00 PM",
-  ];
+    if (preselectedDoctorId && filteredDoctors.length > 0) {
+      const found = filteredDoctors.find(
+        (d) => d.doctorId === preselectedDoctorId
+      );
+      if (found) setSelectedDoctor(found);
+    }
+  }, [prefillQuery, preselectedDoctorId, filteredDoctors, setQuery]);
 
-  const handleSubmit = () => {
-    alert(
-      `Appointment Booked!
-Doctor: ${selectedDoctor.name}
-Service: ${selectedService}
-Date: ${date}
-Time: ${time}`
-    );
+  // Fetch available slots when doctor or date changes
+  useEffect(() => {
+    if (!selectedDoctor || !date) return;
+
+    const fetchSlots = async () => {
+      try {
+        const slots: TimeSlot[] = await fetchDoctorSlots(
+          selectedDoctor.doctorId,
+          date
+        );
+        setAvailableSlots(slots);
+        setSelectedSlotId(null); // reset selection on change
+      } catch (err) {
+        console.error("Failed to fetch slots:", err);
+      }
+    };
+
+    fetchSlots();
+  }, [selectedDoctor, date]);
+
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
+    if (!selectedDoctor || !selectedAppointment || !selectedSlotId || !user) return;
+
+    if (!isAuthenticated || user.role !== "Patient") {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost:8080/smart-appointment/api/appointments/book",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slotId: selectedSlotId,
+            patientId: user.id,
+            typeId: selectedAppointment.typeId,
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      console.log("Appointment booked:", data);
+
+         navigate("/patient/home", {
+      state: { successMessage: "Appointment booked successfully!" }
+    });
+    } catch (err) {
+      console.error("Booking failed:", err);
+    }
   };
 
+  /* ================= GUARDS ================= */
+  if (loading) return <div className="p-10 text-center">Loading doctors...</div>;
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+
+  /* ================= RENDER ================= */
   return (
     <div className="min-h-screen bg-purple-50 px-6 py-10">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-   <button
-        onClick={() => navigate("/patient/doctors")}
-        className="mb-4 text-indigo-600 hover:underline"
-      >
-        ← Back 
-      </button>
-        {/* HEADER */}
-        <h1 className="text-3xl font-bold text-center text-purple-700 mb-2">
-          Book Appointment
-        </h1>
-        <p className="text-center text-gray-500 mb-8">
-          Choose doctor, service, date and time
-        </p>
-        
-        {/* STEP 1: DOCTOR */}
-        <h2 className="font-semibold mb-3">1. Select Doctor</h2>
+        <h1 className="text-3xl font-bold text-center mb-8">Book Appointment</h1>
+
+        {/* STEP 1: Select Doctor */}
+        <DoctorBrowseFilters
+          query={query}
+          onQueryChange={setQuery}
+          speciality={speciality}
+          onSpecialityChange={setSpeciality}
+          gender={gender}
+          onGenderChange={setGender}
+          specialityOptions={specialityOptions}
+          genderOptions={genderOptions}
+        />
+
         <div className="space-y-4 mb-8">
-          {doctors.map((doctor) => (
+          {filteredDoctors.map((doctor) => (
             <div
-              key={doctor.id}
+              key={doctor.doctorId}
               onClick={() => {
                 setSelectedDoctor(doctor);
-                setSelectedService("");
+                setSelectedAppointment(null);
               }}
-              className={`border rounded-xl p-4 cursor-pointer flex justify-between items-center
-                ${
-                  selectedDoctor?.id === doctor.id
-                    ? "border-purple-600 bg-purple-50"
-                    : "hover:border-gray-400"
-                }`}
+              className={`border p-4 rounded cursor-pointer ${
+                selectedDoctor?.doctorId === doctor.doctorId
+                  ? "border-purple-600 bg-purple-50"
+                  : ""
+              }`}
             >
-              <div>
-                <p className="font-medium">{doctor.name}</p>
-                <p className="text-sm text-gray-500">
-                  {doctor.specialty}
-                </p>
-              </div>
+              Dr. {doctor.user?.firstName} {doctor.user?.lastName} -{" "}
+              {doctor.speciality?.specialityName ?? "General"}
             </div>
           ))}
         </div>
 
-        {/* STEP 2: SERVICES */}
-        {selectedDoctor && (
+        {/* STEP 2: Select Appointment Type */}
+        {selectedDoctor?.speciality?.appointmentTypes && (
           <>
-            <h2 className="font-semibold mb-3">
-              2. Select Service
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {selectedDoctor.services.map((service) => (
+            <h2 className="font-semibold mb-3">Select Appointment Type</h2>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              {selectedDoctor.speciality.appointmentTypes.map((type) => (
                 <button
-                  key={service}
-                  onClick={() => setSelectedService(service)}
-                  className={`border rounded-lg p-3 text-left
-                    ${
-                      selectedService === service
-                        ? "border-purple-600 bg-purple-50"
-                        : "hover:border-gray-400"
-                    }`}
+                  key={type.typeId}
+                  onClick={() => setSelectedAppointment(type)}
+                  className={`border p-3 rounded ${
+                    selectedAppointment?.typeId === type.typeId
+                      ? "border-purple-600 bg-purple-50"
+                      : ""
+                  }`}
                 >
-                  {service}
+                  {type.name}
                 </button>
               ))}
             </div>
           </>
         )}
 
-        {/* STEP 3: DATE & TIME */}
-        {selectedService && (
+        {/* STEP 3: Select Date */}
+        {selectedAppointment && (
           <>
-            <h2 className="font-semibold mb-3">
-              3. Select Date & Time
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="border rounded-lg px-4 py-2"
-              />
+            <h2 className="font-semibold mb-3">Select Date</h2>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="border p-2 rounded mb-4"
+            />
+          </>
+        )}
 
-              <select
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="border rounded-lg px-4 py-2"
-              >
-                <option value="">Select Time</option>
-                {availableTimes.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+        {/* STEP 4: Select Time Slot */}
+        {availableSlots.length > 0 && (
+          <>
+            <h2 className="font-semibold mb-3">Select Time Slot</h2>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              {availableSlots.map((slot) => (
+                <button
+                  key={slot.slotId}
+                  onClick={() => setSelectedSlotId(slot.slotId)}
+                  disabled={!slot.available}
+                  className={`border p-3 rounded ${
+                    selectedSlotId === slot.slotId
+                      ? "border-purple-600 bg-purple-50"
+                      : ""
+                  } ${!slot.available ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+                </button>
+              ))}
             </div>
           </>
         )}
 
-        {/* SUBMIT */}
+        {/* CONFIRM BUTTON */}
         <div className="text-center">
           <button
-            disabled={!selectedDoctor || !selectedService || !date || !time}
+            disabled={!selectedSlotId}
             onClick={handleSubmit}
-            className="bg-purple-600 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-semibold"
+            className="bg-purple-600 text-white px-8 py-3 rounded disabled:bg-gray-400"
           >
             Confirm Appointment
           </button>
@@ -189,5 +236,3 @@ Time: ${time}`
     </div>
   );
 }
-
-export default BookAppointment;

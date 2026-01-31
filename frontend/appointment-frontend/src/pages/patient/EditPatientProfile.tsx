@@ -1,103 +1,171 @@
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { formatPhoneNumber, getAgeFromDOB } from "@/utils/validators";
+import { getMyPatient, patchPatient } from "@/services/patientServices";
+import { getAllergies } from "@/services/allergyService";
+import { getBloodType } from "@/services/bloodTypeService";
+import EditPatientProfileForm from "@/components/EditPatientProfileForm";
+import { Allergy, BloodType, PatchPatientRequest, Patient, PatientEditForm } from "@/types/patientTypes";
 
-function EditPatientProfile() {
-  const navigate = useNavigate();
+const emptyForm: PatientEditForm = {
+  patientId: 0,
+  address: "",
+  dateOfBirth: "",
+  gender: "other",
+  phoneNumber: "",
+  bloodType: "",
+  allergyIds: [],
+  noAllergies: false,
+   drugAllergies:"",
+};
 
-  const [form, setForm] = useState({
-    name: "Jane Smith",
-    age: 23,
-    bloodGroup: "O+",
-    address: "123 Green Street, New York",
-    allergies: "Peanuts",
-    medicalHistory: "No chronic illness",
-    lifestyle: "Vegetarian, exercises regularly",
-  });
+type EditProfileLocationState = {
+  patient?: Patient;
+};
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+function toGender(value: string | null | undefined): "male" | "female" | "other" {
+  switch ((value ?? "").toLowerCase()) {
+    case "male":
+      return "male";
+    case "female":
+      return "female";
+    case "other":
+      return "other";
+    default:
+      return "other";
   }
-
-  function handleSave() {
-    // For now just navigate back
-    // (Later you can connect this to backend)
-    navigate("/patient/profile");
-  }
-
-  return (
-    <div className="p-6 max-w-2xl mx-auto">
-
-         {/* Back link */}
-      <button
-        onClick={() => navigate("/patient/profile")}
-        className="mb-4 text-indigo-600 hover:underline"
-      >
-        ← Back to Profile
-      </button>
-      <h2 className="text-2xl font-bold mb-6">Edit Patient Profile</h2>
-
-      <Input label="Name" name="name" value={form.name} onChange={handleChange} />
-      <Input label="Age" name="age" value={form.age} onChange={handleChange} />
-      <Input
-        label="Blood Group"
-        name="bloodGroup"
-        value={form.bloodGroup}
-        onChange={handleChange}
-      />
-      <Input
-        label="Address"
-        name="address"
-        value={form.address}
-        onChange={handleChange}
-      />
-      <Input
-        label="Allergies"
-        name="allergies"
-        value={form.allergies}
-        onChange={handleChange}
-      />
-      <Input
-        label="Medical History"
-        name="medicalHistory"
-        value={form.medicalHistory}
-        onChange={handleChange}
-      />
-      <Input
-        label="Other Details"
-        name="lifestyle"
-        value={form.lifestyle}
-        onChange={handleChange}
-      />
-
-      <div className="flex gap-4 mt-8">
-        <button
-          onClick={() => navigate("/patient/profile")}
-          className="px-4 py-2 border rounded"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className="px-4 py-2 bg-indigo-600 text-white rounded"
-        >
-          Save
-        </button>
-      </div>
-    </div>
-  );
 }
 
-function Input({ label, ...props }) {
-  return (
-    <div className="mb-4">
-      <label className="block mb-1 font-medium">{label}</label>
-      <input
-        {...props}
-        className="w-full border rounded px-3 py-2"
-      />
-    </div>
-  );
+function EditPatientProfile() {
+    const navigate = useNavigate();
+
+	const location = useLocation();
+	const patientFromState = (location.state as EditProfileLocationState | null)?.patient ?? null;
+
+	const [patient, setPatient] = useState<Patient | null>(patientFromState);
+	const [error, setError] = useState<string | null>(null);
+
+	const [allergies, setAllergies] = useState<Allergy[]>([]);
+	const [bloodTypes, setBloodTypes] = useState<BloodType[]>([]);
+
+	const [form, setForm] = useState<PatientEditForm>(emptyForm);
+
+	const [saving, setSaving] = useState(false);
+
+	const didFetch = useRef(false);
+
+	useEffect(() => {
+		if (didFetch.current) return;
+		didFetch.current = true;
+
+		let cancelled = false;
+	
+		(async () => {
+		  	try{
+                console.log("Fetching allergies and blood types...");
+
+				const [allergyData, bloodData] = await Promise.all([
+					getAllergies(),
+					getBloodType(),
+				]);
+
+				setAllergies(allergyData);
+				setBloodTypes(bloodData);
+				
+		  	} catch (err) {
+				console.error(err);
+				if (!cancelled) setError("Failed to load Profile");
+		  	}
+		})();
+		return () => {
+      		cancelled = true;
+    	};
+	}, []);
+
+	useEffect(() => {
+		if (patient) return;
+
+		(async () => {
+			try {
+				const p = await getMyPatient();
+				setPatient(p);
+			} catch (e) {
+				console.error(e);
+				setError("Failed to load patient");
+			}
+		})();
+  	}, [patient]);
+
+    useEffect(() => {
+    	if (!patient) return;
+
+		setForm({
+			patientId: patient.patientId ?? 0,
+			address: patient.address ?? "",
+			dateOfBirth: patient.dateOfBirth ?? "",
+			gender: toGender(patient.gender),
+			phoneNumber: patient.phoneNumber ?? "",
+			bloodType: patient.bloodType?.name ?? "",
+			allergyIds: patient.allergies?.map((a) => a.allergyId) ?? [],
+       noAllergies: patient.noAllergies ?? false,
+      drugAllergies: patient.drugAllergies ?? "",
+		});
+  	}, [patient]);
+
+	if (!patient) return <p>Loading information...</p>;
+
+	const handleSave = async () => {
+		const allergyPayload: string[] = allergies.filter((a) => form.allergyIds.includes(a.allergyId)).map((a) => a.name);
+		
+		const patientAge = getAgeFromDOB(form.dateOfBirth);
+		if (patientAge === null){
+			throw new Error ("Invalid date of birth")
+		}
+
+		const payload: PatchPatientRequest = {
+			address: form.address,
+			age: patientAge,
+			allergies: allergyPayload,
+			bloodType: form.bloodType,
+			dateOfBirth: form.dateOfBirth,
+			gender: form.gender,
+			phoneNumber: form.phoneNumber,
+      noAllergies: form.noAllergies,
+      drugAllergies: form.drugAllergies,
+		};
+		
+		console.log("PATCH payload", payload);
+
+		await patchPatient(patient.patientId, payload);
+	};
+
+    const handleSubmit = async () => {
+		try {
+			setSaving(true);
+            await handleSave();
+            navigate("/patient/profile");
+        } catch (err){
+			console.error(err);
+			setError("Failed to update profile");
+        } finally {
+			setSaving(false);
+		}
+    };
+
+	if (error) return <p className="text-red-600">{error}</p>;
+	
+
+    return (
+        <EditPatientProfileForm
+            value={form}
+            onChange={setForm}
+            onSubmit={handleSubmit}
+            saving={saving}
+            allergies={allergies}
+            bloodTypes={bloodTypes}
+            onBack={() => navigate("/patient/profile")}
+        />
+    );
 }
 
 export default EditPatientProfile;
-

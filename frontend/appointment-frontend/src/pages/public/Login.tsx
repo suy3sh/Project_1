@@ -1,33 +1,52 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth"
+//import { mockLogin } from "../../services/authService";
+import { login as loginAPI } from "../../services/authService";
+import { roleHomePath } from "../../utils/roleHomePath";
+import LoginForm from "../../components/LoginForm";
 
-function Login() {
-  const [role, setRole] = useState("patient");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
 
+
+export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth(); // matches AuthContext
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  
 
-    if (!username || !password) {
-      alert("Please fill all fields");
-      return;
+  async function handleSubmit(payload: { email: string; password: string }) {
+    
+    setError(null);
+    setBusy(true);
+
+    try {
+      const res = await loginAPI(payload.email, payload.password);
+
+      // Update AuthContext
+      login({ user: res.user, token: res.token });
+
+      // If redirected here from ProtectedRoute, go back after login
+      const state = location.state as { from?: string } | null;
+      const from = state?.from;
+      
+      const roleHome = roleHomePath(res.user.role);
+      const destination = from && from !== "/" && from !== "/login" ? from : roleHome;
+
+      navigate(destination, { replace: true });
+
+    } catch {
+      setError("Login failed. Please check your credentials and try again.");
+    } finally {
+      setBusy(false);
     }
-
-    // TEMP login success
-    if (role === "patient") {
-      navigate("/patient/home");
-    } else if (role === "staff") {
-      navigate("/doctor/home");
-    }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-white px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        
         <h1 className="text-3xl font-bold text-center text-purple-700">
           Smart Appointment System
         </h1>
@@ -35,86 +54,41 @@ function Login() {
           Log in to access your dashboard
         </p>
 
-        {/* Role Selection */}
-        <div className="mt-8">
-          <p className="mb-3 font-medium text-gray-700">
-            Select Your Role:
+        {/* Dev Tip (THIS IS TEMPORARY) */}
+        {/* <div className="mt-6 rounded-xl border border-purple-200 bg-purple-50 p-4">
+          <p className="text-sm font-semibold text-purple-700">Testing Tip</p>
+          <p className="mt-1 text-sm text-gray-600">
+            Use <code className="font-mono text-purple-700">doctor@test.com</code>,{" "}
+            <code className="font-mono text-purple-700">admin@test.com</code>, or{" "}
+            <code className="font-mono text-purple-700">super@test.com</code> to test different role navbars.
           </p>
-
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => setRole("patient")}
-              className={`border rounded-xl py-4 text-center transition
-                ${
-                  role === "patient"
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "border-gray-300 text-purple-700 hover:bg-purple-50"
-                }
-              `}
-            >
-              🧑‍⚕️
-              <p className="mt-2 font-semibold">Patient</p>
-            </button>
-
-            <button
-              onClick={() => setRole("staff")}
-              className="border rounded-xl py-4 text-center text-purple-700 hover:bg-purple-50"
-            >
-              👩‍💼
-              <p className="mt-2 font-semibold">Staff</p>
-            </button>
-          </div>
-        </div>
+        </div> */}
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="mt-8 space-y-5">
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
+        <LoginForm 
+          initialEmail=""
+          initialPassword=""
+          busy={busy}
+          error={error}
+          onSubmit={handleSubmit}
+        />  
 
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 transition py-2 rounded-lg font-semibold text-white"
-          >
-            Log In
-          </button>
-        </form>
- {/* Sign Up Link */}
+        {/* Sign Up Link */}
         <p className="text-center text-sm text-gray-500 mt-6">
           Not registered yet?{" "}
           <span
             onClick={() => navigate("/register")}
             className="text-purple-600 font-semibold cursor-pointer hover:underline"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") navigate("/register");
+            }}
           >
             Sign up
           </span>
         </p>
-
       </div>
     </div>
   );
 }
-
-export default Login;

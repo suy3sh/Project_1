@@ -1,137 +1,146 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import RegisterForm1 from "../../components/RegisterForm1";
+import RegisterForm2 from "../../components/RegisterForm2";
+import { register, login as loginAPI} from "../../services/authService";
+import { patchPatient } from "@/services/patientServices";
+import { setTokenGetter } from "@/services/http";
+import { getAllergies } from "@/services/allergyService";
+import { getBloodType } from "@/services/bloodTypeService";
+import { Allergy, BloodType, PatchPatientRequest, PatientDetailsForm } from "@/types/patientTypes";
+import { RegisterUserForm } from "@/types/userTypes";
+import { getAgeFromDOB } from "@/utils/validators";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/auth/useAuth";
+import { roleHomePath } from "@/utils/roleHomePath";
 
-function Register() {
+
+
+export default function RegisterWizard() {
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  const [formData, setFormData] = useState({
+  const [step, setStep] = useState<1 | 2>(1);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [allergies, setAllergies] = useState<Allergy[]>([]);
+  const [bloodTypes, setBloodTypes] = useState<BloodType[]>([]);
+  const [error, setError] = useState<String>();
+  
+  const tokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const allergyData = await getAllergies();
+        const bloodData = await getBloodType();
+        
+        if (!cancelled) {
+          setAllergies(allergyData);
+          setBloodTypes(bloodData);
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load allergies or bloodTypes")
+      }
+    })();
+    return () => {
+      cancelled = true;
+    }
+  }, []);
+
+  const [userForm, setUserForm] = useState<RegisterUserForm>({
     firstName: "",
     lastName: "",
     email: "",
-    password: ""
+    password: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const [patientForm, setPatientForm] = useState<PatientDetailsForm>({
+    gender: "other",
+    phoneNumber: "",
+    dateOfBirth: "",
+    address: "",
+    bloodType: "",
+    allergyIds: [],
+  });
+
+  const handleRegistrationStep1 = async () => {  
+    const res = await register(userForm.firstName, userForm.lastName, userForm.email, userForm.password);
+    
+    setUserId(res.userId);
+    setStep(2);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      alert("Please fill all fields");
-      return;
+  const handleRegistrationStep2 = async () => {
+    if (userId == null){
+      setStep(1);
+      throw new Error("Missing user ID");
     }
 
-    // 🔐 Send to backend later
-    console.log("Register Patient:", formData);
+    //login and get token
+    const authRes = await loginAPI(userForm.email, userForm.password);
+    tokenRef.current = authRes.token;
+    setTokenGetter(() => tokenRef.current);
 
-    alert("Registration successful!");
-    navigate("/login");
+    //get the patients age from DOB
+    const patientAge = getAgeFromDOB(patientForm.dateOfBirth);
+    if (patientAge === null){
+      throw new Error ("Invalid date of birth")
+    }
+
+    //make request payload
+    const allergyPayload: string[] = allergies.filter((a) => patientForm.allergyIds.includes(a.allergyId)).map((a) => a.name);
+    const payload: PatchPatientRequest = {
+      address: patientForm.address,
+      age: patientAge,
+      allergies: allergyPayload,
+      bloodType: patientForm.bloodType,
+      dateOfBirth: patientForm.dateOfBirth,
+      gender: patientForm.gender,
+      phoneNumber: patientForm.phoneNumber,
+    };
+    console.log("PATCH payload", payload);
+
+    //patch
+    await patchPatient(userId, payload);
+    
+    //log in
+    login({ user: authRes.user, token: authRes.token });
+
+    // If redirected here from ProtectedRoute, go back after login
+    const state = location.state as { from?: string } | null;
+    const from = state?.from;
+    
+    const roleHome = roleHomePath(authRes.user.role);
+    const destination = from && from !== "/" && from !== "/login" ? from : roleHome;
+
+    navigate(destination, { replace: true });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-white px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-center text-purple-700">
-          Patient Registration
-        </h1>
-        <p className="text-center text-gray-500 mt-2">
-          Create your account to book appointments
-        </p>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              First Name
-            </label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="Enter first name"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 
-                         focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              Last Name
-            </label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Enter last name"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 
-                         focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 
-                         focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-600">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 
-                         focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 
-                       transition py-2 rounded-lg font-semibold text-white"
-          >
-            Register
-          </button>
-        </form>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{" "}
-          <span
-            className="text-purple-600 font-medium cursor-pointer hover:underline"
-            onClick={() => navigate("/login")}
-          >
-            Login
-          </span>
-        </p>
-
-      </div>
-    </div>
+    <>
+      {error && (
+        <div className="rounded-xl border border-red-200 font-medium bg-red-50 p-3 text-sm text-red-700 text-center">
+          {error}
+        </div>
+      )}
+      {step === 1 ? (
+        <RegisterForm1
+          value={userForm}
+          onChange={setUserForm}
+          onNext={handleRegistrationStep1}
+        />
+      ) : (
+        <RegisterForm2
+          value={patientForm}
+          onChange={setPatientForm} 
+          onSubmit={handleRegistrationStep2}
+          allergies={allergies}
+          bloodTypes={bloodTypes}
+        />          
+      )}
+    </>
   );
 }
-
-export default Register;

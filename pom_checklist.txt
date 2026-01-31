@@ -1,0 +1,23 @@
+Any changes to pom.xml need to be noted here
+
+Java 21
+Spring Boot 4.0.1
+
+Dependencies:
+  Spring Boot Data JPA
+  Spring Boot Data JPA Test
+  Spring Boot Web MVC
+  Spring Boot Web MVC Test
+  Spring Boot Dev Tools
+  PostgreSQL Driver
+  H2 Database Drive
+  Lombok
+  JUnit Jupiter Api 6.0.1
+  JUnit Jupiter Engine 6.0.1
+  Mockito 5.14.2
+  JWT Api 0.13.0
+  JWT Impl 0.13.0
+  JWT Jackson 0.13.0
+  Jackson Datatypes
+Plugins:
+  Make sure lombok stuff is here

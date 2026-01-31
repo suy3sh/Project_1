@@ -1,0 +1,55 @@
+Database connection (Make sure you're not on the business WiFi before running): 
+  - Double check that the application.properties file has:
+    spring.datasource.url=jdbc:postgresql://aws-0-us-west-2.pooler.supabase.com:5432/postgres?&sslmode=require
+    spring.datasource.username=postgres.dlwuipvhdfwhywnwnizt
+    spring.datasource.password=Team5Revature
+    spring.datasource.driver-class-name=org.postgresql.Driver
+
+Endpoints (http://localhost:8080):
+  - /smart-appointment
+    - /api
+      - /users (GET, returns all users)
+        - /{user_id} (GET, returns user with specified id)
+      - /auth
+        - /login (POST)
+        - /register (POST)
+      - /patients (GET, return all patients)*
+		- /{user_id} (GET, PATCH)
+      - /doctors (GET)*
+        - /{user_id} (GET)
+          - /appointments (GET)
+            - /{appointment_id} (GET)
+      - /appointments (GET)*
+      - /time-slots (GET)*
+	  - /info (or data or something)*
+		- /blood-types
+		- /allergies
+
+Register (Post):
+{
+	"firstName": "",
+  "lastName": "",
+  "email": "",
+  "password": "",
+  "privilegeId": 1
+}
+Login (Post): 
+{
+  "email": "",
+  "password": ""
+}
+Update Patient Info (Put/Patch)*:
+{
+  "age": 1,
+  "gender": "male/female",
+  "phoneNumber": "",
+  "DOB": "",
+  "Address": "",
+  "bloodType": "",
+  "allergies": {
+    "allergyId": 1,
+    "name": ""
+  }
+}
+
+*not implemented yet

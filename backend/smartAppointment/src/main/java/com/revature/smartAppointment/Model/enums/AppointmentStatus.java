@@ -1,8 +1,10 @@
 package com.revature.smartAppointment.Model.enums;
 
 public enum AppointmentStatus {
-    REQUESTED,
     CONFIRMED,
     CANCELLED,
-    COMPLETED
+    DENIED,
+    COMPLETED,
+    NO_SHOW,
+    REQUESTED
 }

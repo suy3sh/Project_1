@@ -1,197 +1,184 @@
-import { useState } from "react";
-import Calendar from "react-calendar";
-import type { CalendarProps } from "react-calendar";
-import "react-calendar/dist/Calendar.css";
 import { useNavigate } from "react-router-dom";
-
-/* ================= TYPES ================= */
-
-type TimeSlot = {
-  time: string;
-  available: boolean;
-};
-
-type DoctorAvailability = {
-  id: number;
-  name: string;
-  specialization: string;
-  slots: TimeSlot[];
-};
-
-/* ============= MOCK DATA ================= */
-
-const availabilityByDate: Record<string, DoctorAvailability[]> = {
-  "2026-01-10": [
-    {
-      id: 1,
-      name: "Dr. Ben Martinez",
-      specialization: "Cardiologist",
-      slots: [
-        { time: "10:00 AM", available: true },
-        { time: "11:00 AM", available: true },
-        { time: "2:00 PM", available: false },
-      ],
-    },
-  ],
- "2026-01-11": [
-  {
-    id: 2,
-    name: "Dr. Samuel Chen",
-    specialization: "General Practitioner",
-    slots: [
-      { time: "9:00 AM", available: true },
-      { time: "1:00 PM", available: true },
-    ],
-  },
-  {
-    id: 3,
-    name: "Dr. Leyla Al-Sayed",
-    specialization: "Pediatrician",
-    slots: [
-      { time: "10:00 AM", available: true },
-      { time: "3:00 PM", available: false },
-    ],
-  },
-  {
-    id: 4,
-    name: "Dr. Ben Martinez",
-    specialization: "Cardiologist",
-    slots: [
-      { time: "11:00 AM", available: true },
-      { time: "4:00 PM", available: true },
-    ],
-  },
-],
-   "2026-01-01": [
-    {
-      id: 2,
-      name: "Dr. Leyla Al-Sayed",
-      specialization: "Pediatrician",
-      slots: [
-        { time: "9:00 AM", available: true },
-        { time: "5:00 PM", available: true },
-      ],
-    },
-  ],
-   "2026-01-05": [
-    {
-      id: 2,
-      name: "Dr. Ben martinez",
-      specialization: "Cardiologist",
-      slots: [
-        { time: "11:00 AM", available: true },
-        { time: "1:00 PM", available: true },
-      ],
-    },
-  ],
-};
-
-/* ============= COMPONENT ================= */
+import { CalendarAvail } from "@/components/availability";
+import type { DoctorAvailability } from "@/components/availability";
+import { useEffect, useState } from "react";
 
 const GuestHome: React.FC = () => {
-  const [selectedDate, setSelectedDate] =
-    useState<CalendarProps["value"]>(null);
-
-  const [availableDoctors, setAvailableDoctors] =
-    useState<DoctorAvailability[]>([]);
-
   const navigate = useNavigate();
 
-  /* Calendar date change handler */
-  const handleDateChange: CalendarProps["onChange"] = (value) => {
-    setSelectedDate(value);
 
-    if (value instanceof Date) {
-      const dateKey = value.toISOString().split("T")[0];
-      setAvailableDoctors(availabilityByDate[dateKey] || []);
-    } else {
-      setAvailableDoctors([]);
-    }
-  };
+   // STATE to hold backend availability
+  const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, DoctorAvailability[]>>({});
+  const [loading, setLoading] = useState(true);
+  // FETCH availability from backend
+useEffect(() => {
+    fetch("http://localhost:8080/smart-appointment/api/availability")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch availability");
+        return res.json();
+      })
+      .then(data => setAvailabilityByDate(data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
 
+  
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50">
       {/* HERO SECTION */}
-      <section className="flex flex-col items-center text-center px-6 py-24">
-        <h1 className="text-5xl font-extrabold text-gray-800 mb-6">
-          Welcome to Your Health Journey
+      <section className="flex flex-col items-center text-center px-6 py-16 md:py-20">
+        <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+          Welcome
+        </div>
+
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+          Welcome to <span className="text-indigo-600">Your Health Journey</span>
         </h1>
 
-        <p className="text-xl text-gray-600 max-w-2xl mb-10">
-          Book your appointment with ease and connect with the best healthcare
-          professionals
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mb-8">
+          Book your appointment with ease and connect with the best healthcare professionals.
         </p>
 
-        <div className="flex gap-6">
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:bg-indigo-700 transition"
+        <button
+          onClick={() => navigate("/doctors")}
+          className="group relative inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5"
+        >
+          Find Doctors
+          <svg
+            className="w-5 h-5 transition-transform group-hover:translate-x-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            Log In
-          </button>
-
-          <button
-            onClick={() => navigate("/doctors")}
-            className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-600 hover:text-white transition"
-          >
-            Find Doctors
-          </button>
-        </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 8l4 4m0 0l-4 4m4-4H3"
+            />
+          </svg>
+        </button>
       </section>
 
-      {/* CALENDAR SECTION */}
-      <section className="flex justify-center pb-10">
-        <div className="bg-white p-8 rounded-2xl shadow-xl">
-          <h2 className="text-2xl font-bold text-center mb-4">
-            Select Appointment Date
-          </h2>
-
-          <Calendar
-            onChange={handleDateChange}
-            value={selectedDate}
-            className="rounded-lg"
-          />
-        </div>
-      </section>
-
-      {/* DOCTOR AVAILABILITY */}
-      {availableDoctors.length > 0 && (
-        <section className="flex justify-center pb-20">
-          <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl">
-            <h3 className="text-xl font-bold mb-4 text-center">
-              Available Doctors
-            </h3>
-
-            {availableDoctors.map((doctor) => (
-              <div key={doctor.id} className="mb-6 border-b pb-4">
-                <h4 className="font-semibold text-lg">
-                  {doctor.name}
-                </h4>
-                <p className="text-gray-600">
-                  {doctor.specialization}
-                </p>
-
-                <div className="flex gap-3 flex-wrap mt-3">
-                  {doctor.slots.map((slot, index) => (
-                    <span
-                      key={index}
-                      className={`px-3 py-1 rounded-lg text-sm ${
-                        slot.available
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-200 text-gray-500 line-through"
-                      }`}
-                    >
-                      {slot.time}
-                    </span>
-                  ))}
+      {/* MAIN CONTENT - CALENDAR & SIDEBAR SIDE BY SIDE */}
+      <section className="px-4 md:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+          {/* CALENDAR - Takes more space */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-indigo-100 rounded-2xl">
+                  <svg
+                    className="w-6 h-6 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900">Available Slots</h2>
+                  <p className="text-sm text-gray-500">Select a time to start booking</p>
                 </div>
               </div>
-            ))}
+
+              <CalendarAvail
+                availabilityByDate={availabilityByDate}
+                onBook={(doctor, date) =>
+                  navigate("/login", {
+                    state: { redirectTo: "/patient/book", doctor, selectedDate: date },
+                  })
+                }
+              />
+            </div>
           </div>
-        </section>
-      )}
+
+          {/* SIDEBAR - Get Started (mirrors appointments card styling) */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100 lg:sticky lg:top-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-emerald-100 rounded-2xl">
+                  <svg
+                    className="w-6 h-6 text-emerald-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
+                    />
+                    <circle cx="9" cy="7" r="4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 8v6m3-3h-6"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900">Get Started</h2>
+                  <p className="text-sm text-gray-500">Sign in to book and manage appointments</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-gray-50 to-white p-5 rounded-2xl border border-gray-100">
+                  <p className="text-gray-600 mb-4">
+                    Create an account or sign in to book appointments and keep track of your schedule.
+                  </p>
+
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={() => navigate("/login")}
+                      className="group relative inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300"
+                    >
+                      Log In
+                      <svg
+                        className="w-5 h-5 transition-transform group-hover:translate-x-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={() => navigate("/register")}
+                      className="inline-flex items-center justify-center gap-2 border-2 border-indigo-600 text-indigo-700 px-6 py-3 rounded-2xl font-semibold hover:bg-indigo-50 transition-all duration-300"
+                    >
+                      Create Account
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  Tip: You can browse doctors as a guest, but you’ll need to sign in to confirm a booking.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
 export default GuestHome;
+
