@@ -1,5 +1,8 @@
 import { getMyDoctor } from "@/services/doctorServices";
-import { getMyAppointments, updateAppointmentStatus } from "@/services/appointmentService";
+import {
+  getMyAppointments,
+  updateAppointmentStatus,
+} from "@/services/appointmentService";
 // import { updateAppointmentStatus } from "@/services/appointmentServices"; // uncomment when backend ready
 import { Doctor } from "@/types/doctorTypes";
 import { useEffect, useState } from "react";
@@ -11,48 +14,40 @@ export default function DoctorHome() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-const [savingId, setSavingId] = useState<number | null>(null);
-const doctorId = doctor?.doctorId;
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const doctorId = doctor?.doctorId;
 
   const { token, loading } = useAuth();
 
   const updateStatus = async (appointmentId: number, status: string) => {
+    if (!doctorId) return;
+    try {
+      setSavingId(appointmentId); // disable buttons while saving
 
-    if(!doctorId) return;
-  try {
-    setSavingId(appointmentId); // disable buttons while saving
-
-    const res = await fetch(
-      `http://localhost:8080/doctors/${doctorId}/appointments/${appointmentId}/status`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `http://localhost:8080/doctors/${doctorId}/appointments/${appointmentId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
         },
-        body: JSON.stringify({ status }),
-      }
-    );
+      );
 
-    if (!res.ok) throw new Error("Failed to update status");
+      if (!res.ok) throw new Error("Failed to update status");
 
-    const updatedAppointment = await res.json();
+      const updatedAppointment = await res.json();
 
-    //  Remove from today's list (REAL LIFE behavior)
-    setAppointments(prev =>
-      prev.filter(a => a.id !== appointmentId)
-    );
-
-  } catch (err) {
-    console.error(err);
-    alert("Could not update appointment");
-  } finally {
-    setSavingId(null);
-  }
-};
-
-
-
-
+      //  Remove from today's list (REAL LIFE behavior)
+      setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+    } catch (err) {
+      console.error(err);
+      setError("Could not update appointment");
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!token || loading) return;
@@ -85,32 +80,28 @@ const doctorId = doctor?.doctorId;
 
   //  Only show CONFIRMED appointments
   const confirmedAppointments = appointments.filter(
-    (apt) => apt.status === "CONFIRMED"
+    (apt) => apt.status === "CONFIRMED",
   );
 
   const handleStatusChange = async (
     appointmentId: number,
-    status: "COMPLETED" | "CANCELLED" | "NO_SHOW"
+    status: "COMPLETED" | "CANCELLED" | "NO_SHOW",
   ) => {
     if (!doctor || !token) return;
     try {
       setSavingId(appointmentId);
       //  Call backend when ready
       // await updateAppointmentStatus(appointmentId, status, token);
-         await updateAppointmentStatus(
-        doctor.doctorId,
-        appointmentId,
-        status,
-      );
+      await updateAppointmentStatus(doctor.doctorId, appointmentId, status);
       //  Instantly remove from UI
       setAppointments((prev) =>
-        prev.filter((apt) => apt.appointmentId !== appointmentId)
+        prev.filter((apt) => apt.appointmentId !== appointmentId),
       );
 
       setExpandedId(null);
-    }catch (err) {
+    } catch (err) {
       console.error(err);
-      alert("Failed to update appointment status");
+      setError("Failed to update appointment status");
     } finally {
       setSavingId(null);
     }
@@ -123,7 +114,6 @@ const doctorId = doctor?.doctorId;
   return (
     <div className="w-full min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-6 py-12">
-
         {/* Doctor Profile */}
         <div className="rounded-2xl p-8 mb-8 shadow-sm bg-white">
           <div className="flex gap-6 items-start">
@@ -156,9 +146,7 @@ const doctorId = doctor?.doctorId;
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-lg sm:col-span-2">
-                  <p className="text-xs text-slate-500 uppercase mb-1">
-                    About
-                  </p>
+                  <p className="text-xs text-slate-500 uppercase mb-1">About</p>
                   <p className="text-slate-700">{doctor.bio}</p>
                 </div>
               </div>
@@ -167,19 +155,17 @@ const doctorId = doctor?.doctorId;
         </div>
 
         {/* Appointments */}
-        <h2 className="text-2xl font-bold mb-4">
-          Today&apos;s Appointments
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Today&apos;s Appointments</h2>
 
         {confirmedAppointments.length === 0 && (
           <p>No confirmed appointments.</p>
         )}
 
-       {confirmedAppointments.map((apt) => {
-  const isExpanded = expandedId === apt.appointmentId;
+        {confirmedAppointments.map((apt) => {
+          const isExpanded = expandedId === apt.appointmentId;
           const isSaving = savingId === apt.appointmentId;
 
-   return (
+          return (
             <div
               key={apt.appointmentId}
               className="mb-4 bg-white rounded-2xl shadow-sm border border-violet-100"

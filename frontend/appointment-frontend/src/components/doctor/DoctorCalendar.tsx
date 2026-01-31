@@ -1,5 +1,6 @@
 import { DoctorAppointmentView } from "@/services/appointmentService";
 import { AppointmentType } from "@/types/doctorTypes";
+import { formatTime } from "@/utils/validators";
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -309,7 +310,7 @@ export default function DoctorCalendar({
                                 <div className="text-blue-500 text-sm font-medium truncate">{apt.appointmentType}</div>
 
                                 <div className="mt-2 flex items-center gap-2">
-                                  <div className="font-semibold text-sm">🕐 {apt.time}</div>
+                                  <div className="font-semibold text-sm">🕐 {formatTime(apt.time)}</div>
                                   <span
                                     className={`text-[11px] px-2 py-0.5 rounded-full border ${statusPillClass(apt.status)}`}
                                   >

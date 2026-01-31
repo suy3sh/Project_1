@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext, AuthContextType } from "@/auth/AuthContext";
 import { fetchDoctorSlots } from "@/services/slotService";
+import { formatTime } from "@/utils/validators";
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -214,7 +215,7 @@ export default function BookAppointment() {
                       : ""
                   } ${!slot.available ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
-                  {slot.startTime} – {slot.endTime}
+                  {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
                 </button>
               ))}
             </div>

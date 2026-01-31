@@ -52,9 +52,9 @@ export default function LoginForm({
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-xl border border-red-200 font-medium bg-red-50 p-3 text-sm text-red-700 text-center">
               {error}
-            </div>
+              </div>
           )}
 
           <button

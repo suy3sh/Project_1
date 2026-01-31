@@ -25,7 +25,7 @@ export default function DoctorCard({
         <span className="font-semibold">Email:</span> {email}
       </p>
       <p className="m-0 mb-2 text-slate-800">
-        <span className="font-semibold">Specialty:</span> {speciality}
+        <span className="font-semibold">Speciality:</span> {speciality}
       </p>
       <p className="m-0 mb-2 text-slate-800">
         <span className="font-semibold">Years of Experience:</span> {yearsOfExperience}

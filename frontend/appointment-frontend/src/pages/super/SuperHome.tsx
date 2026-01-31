@@ -14,6 +14,7 @@ const SuperHome: React.FC = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [initialPrivilege, setInitialPrivilege] = useState<Privilege>("Doctor");
+    const [error, setError] = useState<String>();
 
     useEffect(() => {
         let cancelled = false;
@@ -27,7 +28,7 @@ const SuperHome: React.FC = () => {
                 }
             } catch (err) {
                 console.error(err);
-                alert("Failed to load users")
+                setError("Failed to load users")
             }
         })();
     
@@ -207,6 +208,11 @@ const SuperHome: React.FC = () => {
                             {users.length} user{users.length !== 1 ? 's' : ''} total
                         </p>
                     </div>
+                    {error && (
+                        <div className="rounded-xl border border-red-200 font-medium bg-red-50 p-3 text-sm text-red-700 text-center">
+                            {error}
+                        </div>
+                    )}
                     <UserTable
                         users={users}
                         onEdit={handleEditUser}

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { RegisterUserForm } from "../types/userTypes";
+import { useState } from "react";
 
 type Props = {
     value: RegisterUserForm;
@@ -9,6 +10,7 @@ type Props = {
 
 export default function RegisterForm1({value, onChange, onNext}: Props) {
     const navigate = useNavigate();
+    const [error, setError] = useState<String>();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange({
@@ -22,13 +24,17 @@ export default function RegisterForm1({value, onChange, onNext}: Props) {
 
         //Basic Validation
         if (!value.firstName || !value.lastName || !value.email || !value.password) {
-            alert("Please fill all fields");
+            setError("Please fill all fields");
             return;
         }
 
         console.log("Registration Step 1: ", value);
 
-        await onNext();
+        try {
+            await onNext();
+        } catch {
+            setError("Registration failed. Please try again.");
+        }
     }
 
     return (
@@ -109,6 +115,14 @@ export default function RegisterForm1({value, onChange, onNext}: Props) {
                     >
                         Continue
                     </button>
+
+                    <div className="flex justify-center">
+                        {error && (
+                            <div className="rounded-xl border border-red-200 font-medium bg-red-50 p-3 text-sm text-red-700 text-center">
+                            {error}
+                            </div>
+                        )}
+                    </div>
                 </form>
 
                 {/* Footer */}

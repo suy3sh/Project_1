@@ -3,6 +3,10 @@ import { User, Privilege, Speciality, CreateUserPayload } from "@/types/superTyp
 import { getSpecialities } from "@/services/superService";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
+type UserFormData = CreateUserPayload & {
+    confirmPassword?: string;
+}
+
 interface UserModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,11 +22,12 @@ export const UserModal: React.FC<UserModalProps> = ({
     user,
     initialPrivilege
 }) => {
-    const [formData, setFormData] = useState<CreateUserPayload>({
+    const [formData, setFormData] = useState<UserFormData>({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
+        confirmPassword: "",
         privilege: initialPrivilege || "Doctor",
         speciality: "",
         gender: "other",
@@ -31,7 +36,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     });
 
     const [specialities, setSpecialities] = useState<Speciality[]>([]);
-    const [errors, setErrors] = useState<Partial<Record<keyof CreateUserPayload, string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
 
     useEffect(() => {
         if (user) {
@@ -74,7 +79,6 @@ export const UserModal: React.FC<UserModalProps> = ({
                 }
             } catch (err) {
                 console.error(err);
-                alert("Failed to load specialities")
             }
         })();
 
@@ -84,7 +88,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     }, []);
 
     const validate = (): boolean => {
-        const newErrors: Partial<Record<keyof CreateUserPayload, string>> = {};
+        const newErrors: Partial<Record<keyof UserFormData, string>> = {};
 
         if (!formData.firstName.trim()) {
             newErrors.firstName = 'First name is required';
@@ -100,9 +104,15 @@ export const UserModal: React.FC<UserModalProps> = ({
         if(!user && !formData.password.trim()) {
             newErrors.password = 'Password is required';
         }
+        if(!user && !formData.confirmPassword?.trim()) {
+            newErrors.confirmPassword = "Please confirm your password";
+        }
+        if(!user && formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match";
+        }
         if (formData.privilege === 'Doctor') {
             if (!formData.speciality) {
-                newErrors.speciality = 'Specialty is required for doctors';
+                newErrors.speciality = 'Speciality is required for doctors';
             }
             if (!formData.experience) {
                 newErrors.experience = 'Years of Experience is required for doctors';
@@ -120,7 +130,8 @@ export const UserModal: React.FC<UserModalProps> = ({
         e.preventDefault();
 
         if (validate()) {
-            onSubmit(formData);
+            const { confirmPassword, ...payload } = formData;
+            onSubmit(payload);
             onClose();
         }
     };
@@ -132,7 +143,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             <div className="flex min-h-screen items-center justify-center p-4">
                 {/* Backdrop */}
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+                    className="fixed inset-0 bg-black/75 bg-opacity-50 transition-opacity"
                     onClick={onClose}
                 />
 
@@ -217,7 +228,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                                     Password
                                 </label>
                                 <input
-                                    type="text"
+                                    type="password"
                                     id="password"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -226,7 +237,27 @@ export const UserModal: React.FC<UserModalProps> = ({
                                     }`}
                                 />
                                 {errors.password && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {!user && (
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Confirm Password
+                                </label>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                                        errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                                    }`}
+                                />
+                                {errors.confirmPassword && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                                 )}
                             </div>
                         )}
@@ -256,7 +287,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                             </select>
                         </div>
 
-                        {/* Specialty (only for doctors) */}
+                        {/* Speciality (only for doctors) */}
                         {formData.privilege === "Doctor" && (
                             <div>
                                 <label htmlFor="speciality" className="block text-sm font-medium text-gray-700 mb-1">
@@ -270,7 +301,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                                         errors.speciality ? 'border-red-300' : 'border-gray-300'
                                     }`}
                                 >
-                                    <option value="">Select a specialty</option>
+                                    <option value="">Select a speciality</option>
                                     {specialities.map((speciality) => (
                                         <option key={speciality.id} value={speciality.name}>
                                             {speciality.name}
@@ -320,7 +351,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                                         errors.gender ? 'border-red-300' : 'border-gray-300'
                                     }`}
                                 >
-                                    <option value="">Select a specialty</option>
+                                    <option value="">Select a gender</option>
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                     <option value="other">Other</option>
